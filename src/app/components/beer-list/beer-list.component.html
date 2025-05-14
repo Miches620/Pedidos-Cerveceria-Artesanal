@@ -1,0 +1,16 @@
+<div class="catalogo">
+<div (mouseenter)="mouseHovering()" (mouseleave)="mouseLeaving()"*ngFor="let item of cervezas" class="card" style="width: 18rem;">
+  <div class="portada">
+<img *ngIf="!isHovering"[src]="'assets/cervezas/' + item.img" class="card-img-top" alt={{item.estilo}}>
+<p *ngIf="isHovering">{{item.info}}</p>
+  </div>
+    <div class="card-body">
+      <h5 class="card-title">{{item.nombre}}</h5>
+      <h6 class="card-title">{{item.estilo}}</h6>
+      <p class="card-text">IBU: {{item.ibu}}</p>
+      <p class="card-text">Alcohol: {{item.alcohol}} %</p>
+      <a href="#" class="btn btn-primary">Agregar</a>
+    </div>
+  </div>
+</div>
+

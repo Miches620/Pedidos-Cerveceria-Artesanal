@@ -1,0 +1,31 @@
+{
+  "cervezas": [
+    {
+      "id": 1,
+      "nombre": "Frenesi",
+      "estilo": "American IPA",
+      "ibu": 60,
+      "alcohol": 6.5,
+      "img":"IPA.jpg",
+      "info":"Cerveza dorada y de cuerpo medio. Tiene un perfil cítrico y frutal aportado por los lúpulos norteamericanos. En aroma pueden sentirse notas a pino, cáscara de naranja y pomelo. Su amargor balanceado da como resultado una cerveza compleja y refrescante."
+    },
+    {
+      "id": 2,
+      "nombre": "Arrogante",
+      "estilo": "ESB",
+      "ibu": 35,
+      "alcohol": 5.5,
+      "img":"ESB.jpg",
+      "info":"Cerveza de color cobrizo y amargor moderado, con un gran balance entre lúpulo y malta.  Los lúpulos ingleses le aportan un aroma floral y herbal, mientras que las maltas le otorgan notas a caramelo."
+    },
+    {
+      "id": 3,
+      "nombre": "Indomable",
+      "estilo": "English Porter",
+      "ibu": 25,
+      "alcohol": 4.9,
+      "img":"Porter.jpg",
+      "info":"Cerveza oscura con notas a café y chocolate. El balance de maltas especiales le aporta un gran carácter."
+    }
+  ]
+}
