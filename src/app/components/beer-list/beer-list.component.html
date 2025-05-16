@@ -1,16 +1,33 @@
+<div class="beer-list">
+
+<!--Filtros-->
+<div class="filtros">
+  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Ordenar por:
+  </button>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" (click)="filtrarPorEstilos()" href="#">Estilo</a></li>
+    <li><a class="dropdown-item" (click)="filtrarPor('SRM')" href="#">Color</a></li>
+    <li><a class="dropdown-item" (click)="filtrarPor('ibu')" href="#">Amargor</a></li>
+    <li><a class="dropdown-item" (click)="filtrarPor('alcohol')" href="#">Alcohol</a></li>
+  </ul>
+</div>
+
+<!--Catalogo de Cervezas-->
 <div class="catalogo">
-<div (mouseenter)="mouseHovering()" (mouseleave)="mouseLeaving()"*ngFor="let item of cervezas" class="card" style="width: 18rem;">
+<div *ngFor="let cerveza of cervezasFiltradas" #item class="card" style="width: 18rem;">
   <div class="portada">
-<img *ngIf="!isHovering"[src]="'assets/cervezas/' + item.img" class="card-img-top" alt={{item.estilo}}>
-<p *ngIf="isHovering">{{item.info}}</p>
+<img [src]="cerveza.img" class="card-img-top" alt={{cerveza.estilo}}>
+<p class="info">{{cerveza.info}}</p>
   </div>
     <div class="card-body">
-      <h5 class="card-title">{{item.nombre}}</h5>
-      <h6 class="card-title">{{item.estilo}}</h6>
-      <p class="card-text">IBU: {{item.ibu}}</p>
-      <p class="card-text">Alcohol: {{item.alcohol}} %</p>
+      <h5 class="card-title"><b>{{cerveza.nombre}}</b></h5>
+      <h6 class="card-title">{{cerveza.estilo}}</h6>
+      <p class="card-text">IBU: {{cerveza.ibu}}</p>
+      <p class="card-text">Alcohol: {{cerveza.alcohol}} %</p>
       <a href="#" class="btn btn-primary">Agregar</a>
     </div>
   </div>
 </div>
 
+</div>

@@ -3,29 +3,68 @@
     {
       "id": 1,
       "nombre": "Frenesi",
+      "categoria": "IPA",
+      "SRM": 5,
       "estilo": "American IPA",
       "ibu": 60,
       "alcohol": 6.5,
-      "img":"IPA.jpg",
-      "info":"Cerveza dorada y de cuerpo medio. Tiene un perfil cítrico y frutal aportado por los lúpulos norteamericanos. En aroma pueden sentirse notas a pino, cáscara de naranja y pomelo. Su amargor balanceado da como resultado una cerveza compleja y refrescante."
+      "img": "assets/cervezas/IPA.jpg",
+      "info": "Cerveza dorada y de cuerpo medio. Tiene un perfil cítrico y frutal aportado por los lúpulos norteamericanos. En aroma pueden sentirse notas a pino, cáscara de naranja y pomelo. Su amargor balanceado da como resultado una cerveza compleja y refrescante."
     },
     {
       "id": 2,
       "nombre": "Arrogante",
+      "categoria": "Bitter",
+      "SRM": 18,
       "estilo": "ESB",
-      "ibu": 35,
+      "ibu": 36,
       "alcohol": 5.5,
-      "img":"ESB.jpg",
-      "info":"Cerveza de color cobrizo y amargor moderado, con un gran balance entre lúpulo y malta.  Los lúpulos ingleses le aportan un aroma floral y herbal, mientras que las maltas le otorgan notas a caramelo."
+      "img": "assets/cervezas/ESB.jpg",
+      "info": "Cerveza de color cobrizo y amargor moderado, con un gran balance entre lúpulo y malta.  Los lúpulos ingleses le aportan un aroma floral y herbal, mientras que las maltas le otorgan notas a caramelo."
     },
     {
       "id": 3,
       "nombre": "Indomable",
+      "categoria": "Porter",
+      "SRM": 29,
       "estilo": "English Porter",
       "ibu": 25,
       "alcohol": 4.9,
-      "img":"Porter.jpg",
-      "info":"Cerveza oscura con notas a café y chocolate. El balance de maltas especiales le aporta un gran carácter."
+      "img": "assets/cervezas/Porter.jpg",
+      "info": "Cerveza oscura con notas a café y chocolate. El balance de maltas especiales le aporta un gran carácter."
+    },
+    {
+      "id": 4,
+      "nombre": "Viaje de Ida",
+      "categoria": "NEIPA",
+      "SRM": 3,
+      "estilo": "Session NEIPA",
+      "ibu": 30,
+      "alcohol": 5,
+      "img": "assets/cervezas/Neipa1.jpg",
+      "info": "Cerveza de color amarillento y cuerpo jugoso. Refrescante y de gran tomabilidad, posee aromas y sabores a frutas tropicales otorgados por sus lúpulos norteamericanos."
+    },
+    {
+      "id": 5,
+      "nombre": "Jugosa Recompensa",
+      "categoria": "NEIPA",
+      "SRM": 4,
+      "estilo": "NEIPA",
+      "ibu": 35,
+      "alcohol": 6,
+      "img": "assets/cervezas/Neipa2.jpg",
+      "info": "Usamos una combinación de los lúpulos Cryo POP, Mosaic e IDaho 7 para lograr esta explosión de frutas tropicales llamada NEIPA."
+    },
+    {
+      "id": 6,
+      "nombre": "Industrialita",
+      "categoria": "Industrial",
+      "SRM": "4",
+      "estilo": "Industrial",
+      "ibu": "20",
+      "alcohol": "4",
+      "img": "assets/cervezas/CervezaRandom.jpg",
+      "info": "No hay descripcion disponible."
     }
   ]
 }

@@ -1,3 +1,19 @@
+/*Estilos del componente*/
+
+.beer-list{
+    display: flex;
+    flex-direction: column;
+}
+
+/*Estilos del Filtro*/
+
+.filtros{
+align-self: flex-end;
+margin-right: 1.5rem;
+}
+
+/*Estilos del Catalogo*/
+
 .catalogo {
     display: flex;
     width: 100%;
@@ -8,18 +24,56 @@
 .card {
     display: flex;
     flex-direction: column;
-    border: 1px solid #33bbeb;
-    
+    justify-content: center;
+    height: 30rem;
+   
 }
 
-.card:hover {
-    box-shadow: -1px 1px 5px 2px;
+.portada {
+    display: flex;
+    position: relative;
+     transition: transform 1500ms;
+     transform-style: preserve-3d;
+}
+
+.card:hover{
+     box-shadow: -1px 1px 5px 2px;
     color: #4e4e4e;
     transition: .75s;
 }
 
-.card-body{
+.card:hover  > .portada{
+    cursor: pointer;
+    transform: rotateY(180deg);
+}
+
+.card .info {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: justify;
+    margin: 0rem 1rem 0rem 1rem;
+    border-bottom: 1px solid #acabab;
+    transform: rotateY(180deg);
+}
+
+
+.card-img-top,
+.info {
+    height: 16rem;
+    position: absolute;
+    backface-visibility: hidden;
+}
+
+.card-body {
+    display: flex;
+    position: relative;
     flex-direction: column;
     align-items: center;
+    justify-content:flex-end;
+    margin: .75rem;
+}
+
+.card-title{
+   text-align: center;
 }
