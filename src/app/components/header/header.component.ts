@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-header',
@@ -6,6 +6,17 @@ import { Component } from '@angular/core';
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit, OnDestroy{
+
+logo:string="/assets/logos/Tropel.jpg"
+
+  ngOnDestroy(): void {
+    
+  }
+  ngOnInit(): void {
+    
+  }
+
+
 
 }

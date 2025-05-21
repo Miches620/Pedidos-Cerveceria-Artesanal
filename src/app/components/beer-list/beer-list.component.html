@@ -1,33 +1,164 @@
 <div class="beer-list">
 
-<!--Filtros-->
-<div class="filtros">
-  <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Ordenar por:
-  </button>
-  <ul class="dropdown-menu">
-    <li><a class="dropdown-item" (click)="filtrarPorEstilos()" href="#">Estilo</a></li>
-    <li><a class="dropdown-item" (click)="filtrarPor('SRM')" href="#">Color</a></li>
-    <li><a class="dropdown-item" (click)="filtrarPor('ibu')" href="#">Amargor</a></li>
-    <li><a class="dropdown-item" (click)="filtrarPor('alcohol')" href="#">Alcohol</a></li>
-  </ul>
+  <!--Barra Admin-->
+  <div class="admin-bar">
+    <button type="button" class="btn btnCrear" data-bs-toggle="modal" data-bs-target="#formCerveza"
+      (click)="mostrarModal('crear')">
+      <i class="fa fa-plus-circle" aria-hidden="true"></i>
+      <i class="fa fa-beer" aria-hidden="true"></i>
+    </button>
+  </div>
+  <!--Filtros-->
+  <div class="filtros">
+    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      Ordenar por:
+    </button>
+    <ul class="dropdown-menu">
+      <li><a class="dropdown-item" (click)="filtrarPor('')" href="#">Estilo</a></li>
+      <li><a class="dropdown-item" (click)="filtrarPor('SRM')" href="#">Color</a></li>
+      <li><a class="dropdown-item" (click)="filtrarPor('ibu')" href="#">Amargor</a></li>
+      <li><a class="dropdown-item" (click)="filtrarPor('alcohol')" href="#">Alcohol</a></li>
+    </ul>
+  </div>
+
+  <!--Catalogo de Cervezas-->
+
+  <div class="catalogo">
+    <div *ngFor="let cerveza of cervezasFiltradas" #item class="card" style="width: 18rem;">
+      <div class="modoAdmin">
+        <button class="editar" (click)="prepararEdicion(cerveza)" data-bs-toggle="modal"
+          data-bs-target="#formCerveza"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+        <button class="borrar" data-bs-toggle="modal" data-bs-target="#borrarCerveza"
+          (click)="ultimarCerveza(cerveza)"><i class="fa fa-trash" aria-hidden="true"></i></button>
+      </div>
+      <div class="portada">
+        <img [ngSrc]="cerveza.img" fill class="card-img-top" alt={{cerveza.estilo}}>
+        <p class="info">{{cerveza.info}}</p>
+      </div>
+      <div class="card-body">
+        <h5 class="card-title"><b>{{cerveza.nombre}}</b></h5>
+        <h6 class="card-title">{{cerveza.estilo}}</h6>
+        <p class="card-text">IBU: {{cerveza.ibu}}</p>
+        <p class="card-text">Alcohol: {{cerveza.alcohol}} %</p>
+        <a href="#" class="btn">AGREGAR</a>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!--Catalogo de Cervezas-->
-<div class="catalogo">
-<div *ngFor="let cerveza of cervezasFiltradas" #item class="card" style="width: 18rem;">
-  <div class="portada">
-<img [src]="cerveza.img" class="card-img-top" alt={{cerveza.estilo}}>
-<p class="info">{{cerveza.info}}</p>
-  </div>
-    <div class="card-body">
-      <h5 class="card-title"><b>{{cerveza.nombre}}</b></h5>
-      <h6 class="card-title">{{cerveza.estilo}}</h6>
-      <p class="card-text">IBU: {{cerveza.ibu}}</p>
-      <p class="card-text">Alcohol: {{cerveza.alcohol}} %</p>
-      <a href="#" class="btn btn-primary">Agregar</a>
+<!--Modal del CRUD-->
+<div class="modal fade" id="formCerveza" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{tituloModal}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cerrarModal"
+          (click)="limpiarFormulario()"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="nuevaCerveza">
+          <div class="mb-1">
+            <label for="nuevaCervezaNombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nuevaCervezaNombre" formControlName="cervezaNombre">
+            <div *ngIf="cNNombre?.invalid && cNNombre?.touched">
+              <div *ngIf="cNNombre?.errors?.['required']" class="text-danger">
+                Ponele un nombre a tu cerveza.
+              </div>
+              <div *ngIf="cNNombre?.errors?.['minlenght']" class="text-danger">
+                Nombre no valido.
+              </div>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label for="nuevaCervezaEstilo" class="form-label">Estilo</label>
+            <select id="nuevaCervezaEstilo" formControlName="cervezaEstilo" class="form-select"
+              aria-label="Default select">
+              <option *ngFor="let estilo of estilos">{{estilo}}</option>
+            </select>
+            <div *ngIf="cNEstilo?.invalid && cNEstilo?.touched">
+              <div *ngIf="cNEstilo?.errors?.['required']" class="text-danger">
+                Para un correcto funcionamiento en los filtros deberas indicar el Estilo de tu cerveza.
+              </div>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label for="nuevaCervezaSRM" class="form-label">Color (SRM)</label>
+            <input type="number" class="form-control" id="nuevaCervezaSRM" formControlName="cervezaSRM">
+            <div *ngIf="cNSRM?.invalid && cNSRM?.touched">
+              <div *ngIf="cNSRM?.errors?.['required']" class="text-danger">
+                Para un correcto funcionamiento en los filtros deberas indicar el SRM de tu cerveza.
+              </div>
+              <div *ngIf="cNSRM?.errors?.['min'] || cNSRM?.errors?.['max']" class="text-danger">
+                Valores permitidos: 1 - 50 SRM.
+              </div>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label for="nuevaCervezaIBU" class="form-label">IBUs</label>
+            <input type="number" class="form-control" id="nuevaCervezaIBU" formControlName="cervezaIBU">
+            <div *ngIf="cNIBU?.invalid && cNIBU?.touched">
+              <div *ngIf="cNIBU?.errors?.['required']" class="text-danger">
+                Para un correcto funcionamiento en los filtros deberas indicar los IBUs de tu cerveza.
+              </div>
+              <div *ngIf="cNIBU?.errors?.['min'] || cNIBU?.errors?.['max']" class="text-danger">
+                Valores permitidos: 0 - 100 IBUs.
+              </div>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label for="nuevaCervezaABV" class="form-label">Alcohol %</label>
+            <input type="number" class="form-control" id="nuevaCervezaABV" formControlName="cervezaABV">
+            <div *ngIf="cNAVB?.invalid && cNAVB?.touched">
+              <div *ngIf="cNAVB?.errors?.['required']" class="text-danger">
+                Para un correcto funcionamiento en los filtros deberas indicar la graducion alcohólica
+                de tu cerveza.
+              </div>
+              <div *ngIf="cNAVB?.errors?.['min'] || cNAVB?.errors?.['max']" class="text-danger">
+                Valores permitidos: 0 % (zero) - 90 % (67.5% - Snake Venom).
+              </div>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label for="nuevaCervezaIMG" class="form-label">Imagen</label>
+            <input type="file" class="form-control" id="nuevaCervezaIMG" formControlName="cervezaIMG">
+          </div>
+          <div class="mb-1">
+            <label for="nuevaCervezaInfo" class="form-label">Descripción</label>
+            <input type="text" class="form-control" id="nuevaCervezaInfo" formControlName="cervezaInfo">
+            <div *ngIf="cNInfo?.errors?.['minlenght'] || cNInfo?.errors?.['maxlenght']" class="text-danger">
+              Descripcion: 20 caracteres min - 280 caracteres max.
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+          (click)="limpiarFormulario()">Cancelar</button>
+        <button *ngIf="!edicion" type="button" class="btn btn-primary" (click)="agregarNuevaCerveza()">Agregar</button>
+        <button *ngIf="edicion" type="button" class="btn btn-primary" (click)="editarCerveza()">Editar</button>
+      </div>
     </div>
   </div>
 </div>
 
+<div class="modal" tabindex="-1" id="borrarCerveza">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Eliminar Cerveza</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+          id="cerrarModalBorrar"></button>
+      </div>
+      <div class="modalBorrarCerveza-body">
+        <p>Estas seguro de que deseas eliminar: </p>
+        <p><b>{{nombreDeCervezaSeleccionada}} - {{estiloDeCervezaSeleccionada}} ?</b></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger"
+          (click)="borrarCerveza(idDeCervezaSeleccionada)">¡ELIMINAR!</button>
+      </div>
+    </div>
+  </div>
 </div>
