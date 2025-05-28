@@ -13,11 +13,11 @@
     background-color: rgba(255, 255, 255, 0.952);
     border-color: rgb(156, 123, 13);
     border-radius: 4px;
-    /*padding: .3rem .7rem .3rem .7rem;*/
     width: 4rem;
 }
 
-.btn.btnCrear:hover {
+.btn.btnCrear:hover,
+.busqueda:hover {
     background-color: rgb(156, 123, 13);
     border-color: rgb(255, 255, 255);
     color: white;
@@ -26,13 +26,11 @@
 }
 
 .btn.btnCrear:hover>.fa-beer,
-.btn.btnCrear:hover>.fa-plus-circle {
+.btn.btnCrear:hover>.fa-plus-circle,
+.busqueda:hover>.fa-solid {
     color: white;
     transition: 0s
 }
-
-
-
 
 .btn.btnCrear:not(:hover) {
     transition: .75s
@@ -44,9 +42,11 @@
 .admin-bar {
     display: flex;
     margin-bottom: 1rem;
+    gap: 1rem;
     width: 100%;
     justify-content: flex-end;
 }
+
 
 
 /*Estilos del Catalogo*/
@@ -119,7 +119,7 @@
     text-align: center;
 }
 
-.btn {
+.btn, .barraDeBusqueda {
     background-color: rgb(255, 255, 255);
     color: rgb(54, 54, 54);
     text-decoration: none;
@@ -147,7 +147,6 @@
 .borrar {
     background-color: rgb(255, 255, 255);
     border-color: rgba(54, 54, 54, .001);
-    border-radius: 100%;
     width: 1.75rem;
     text-align: center;
 }
@@ -162,22 +161,38 @@
 
 .fa:not(:hover),
 .btn:not(:hover),
-.card:not(:hover) {
+.card:not(:hover),
+.busqueda:not(:hover) {
     transition: .75s;
 }
 
 .fa-beer,
-.fa-plus-circle {
+.fa-plus-circle,
+.fa-solid {
     color: rgb(156, 123, 13);
 }
 
-.modalBorrarCerveza-body{
+.fa-solid{
+    align-self: center;
+}
+
+.modalBorrarCerveza-body {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.btn-danger:hover{
+.btn-danger:hover {
     background-color: rgb(184, 50, 50);
+}
+
+.barraDeBusqueda {
+    border-radius: 6px;
+    border-color: rgb(156, 123, 13);
+    text-align:left;
+}
+
+.busquedaFallida{
+   justify-self: center;
 }

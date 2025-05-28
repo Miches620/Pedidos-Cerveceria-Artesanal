@@ -1,17 +1,32 @@
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CervezaService } from '../../services/cerveza.service';
 import { Cerveza } from '../../models/cerveza/cerveza.module';
 import { NgFor, NgIf, NgOptimizedImage } from '@angular/common';
+import { ModalsComponent } from '../modals/modals.component';
+import { encontrarCervezaRepetida, filtrarCervezas, ordenarCervezas, sonIguales } from '../../utils/beer-utils';
 
 @Component({
   selector: 'app-beer-list',
-  imports: [NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage],
+  imports: [NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent],
   templateUrl: './beer-list.component.html',
   styleUrl: './beer-list.component.css'
 })
 export class BeerListComponent implements OnInit, OnDestroy {
+
+  @ViewChild('buscador', { static: true })
+  buscardorInput!: ElementRef<HTMLInputElement>;
+
+  @ViewChild('cerrarBtn', { static: true })
+  cerrarBtnModal!: ElementRef<HTMLButtonElement>;
+
+  @ViewChild('cerrarBtnBorrar', { static: true })
+  cerrarBtnBorrar!: ElementRef<HTMLButtonElement>;
+
+  @ViewChild(ModalsComponent, { static: false })
+  modal!: ModalsComponent;
+
 
   //Variables de almacenamiento de base de datos
   cervezas: Cerveza[] = [];
@@ -24,14 +39,14 @@ export class BeerListComponent implements OnInit, OnDestroy {
   //Variables modificadoras del modal POST - UPDATE
   edicion: boolean = false;
   tituloModal: string = "";
-  botonModal: string = "";
-  returnIMG: string = "";
-  returnInfo: string = "";
 
   //Variables modificadoras del modal DELETE + modal UPDATE
   nombreDeCervezaSeleccionada: string = "";
   estiloDeCervezaSeleccionada: string = "";
   idDeCervezaSeleccionada: number = -1;
+
+  //Variables para filtros y busqueda
+  noMatch: boolean = false;
 
   constructor(private serviceCerveza: CervezaService, private crearCerveza: FormBuilder) {
     this.nuevaCerveza = this.crearCerveza.group({
@@ -47,9 +62,10 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
 
-    this.serviceCerveza.getEstilos().subscribe((data) => {
-      this.estilos = data.sort();
-    })
+    this.noMatch = false;
+
+    this.obtenerEstilos();
+
     this.obtenerCervezas();
 
   }
@@ -58,31 +74,31 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   //*****Getters del Formulario*****************************************************************************************************************
 
-  get cNNombre() {
+  get formNombre() {
     return this.nuevaCerveza.get('cervezaNombre');
   }
 
-  get cNSRM() {
+  get formColor() {
     return this.nuevaCerveza.get('cervezaSRM');
   }
 
-  get cNEstilo() {
+  get formEstilo() {
     return this.nuevaCerveza.get('cervezaEstilo');
   }
 
-  get cNIBU() {
+  get formIBU() {
     return this.nuevaCerveza.get('cervezaIBU');
   }
 
-  get cNAVB() {
+  get formAlcohol() {
     return this.nuevaCerveza.get('cervezaABV');
   }
 
-  get cNIMG() {
+  get formImagen() {
     return this.nuevaCerveza.get('cervezaIMG');
   }
 
-  get cNInfo() {
+  get formInfo() {
     return this.nuevaCerveza.get('cervezaInfo');
   }
 
@@ -92,26 +108,56 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   obtenerCervezas(): void {
     this.serviceCerveza.getCervezas().subscribe((data) => {
-      data.map(x => x.info?.replace(/\s/g, " "))
       this.cervezas = data;
       this.cervezasFiltradas = data;
     });
   }
 
-  filtrarPor(atributo: keyof Cerveza | ""): Cerveza[] {
-    atributo ?
-      this.cervezasFiltradas = [...this.cervezas].sort((a, b) => {
-        const valorA = a[atributo];
-        const valorB = b[atributo];
-        return Number(valorA) - Number(valorB)
-      }) : this.cervezasFiltradas = [...this.cervezas].sort((a, b) => a.estilo.localeCompare(b.estilo));
-    return this.cervezasFiltradas
+  obtenerEstilos(): void {
+    this.serviceCerveza.getEstilos().subscribe((data) => {
+      this.estilos = data.sort();
+    })
   }
 
+OrdenarPor(atributo: keyof Cerveza | ""): void {
+  this.buscardorInput.nativeElement.value = "";
+  this.buscardorInput.nativeElement.placeholder = atributo || "Estilo";
+
+  this.cervezasFiltradas = ordenarCervezas(this.cervezas, atributo);
+}
+
+
+  buscar(): void {
+  const busqueda = this.buscardorInput.nativeElement.value;
+  const criterio = this.buscardorInput.nativeElement.placeholder as keyof Cerveza;
+
+  /*if (busqueda.length === 0) {
+    this.ngOnInit();
+    return
+  }*/
+ busqueda.length>0?
+filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
+  this.cervezasFiltradas = resultado;
+  this.noMatch = this.cervezasFiltradas.length === 0;})
+  :
+  this.ngOnInit();   
+  } 
+
+
+
+  //FAQ - READ
   //- ¿Qué pasa si no hay registros que coincidan con los criterios de búsqueda?
+  //- R: Si la búsqueda no devuelve ningun registro, el usuario recibira la leyenda "No se encontraron coincidencias" (HMTL, linea 26).
   //- ¿Qué pasa si la búsqueda devuelve un conjunto de resultados muy grande y necesita ser paginado?
+  //- R: Teniendo en cuenta la dimension asignada al proyecto, el máximo esperado en este tipo de sectores no sobrepasaria jamas los 50 estilos.
   //- ¿Qué pasa si el usuario solicita un registro que no existe?
+  //- R: Aplica el mismo principio que en la primer pregunta, la linea 26 del HTML devolvera la leyenda "No se encontraron coincidencias".
   //- ¿Qué pasa si la consulta es muy compleja y requiere de índices o optimizaciones adicionales?
+  //- R: La escala asignada al proyecto evita este tipo de consultas, por lo cual esta pregunta no aplica al proyecto en cuestion.
+
+  //* La seccion de busqueda esta divida en 2 sectores:
+  //  -La barra de busqueda (la cual interviene de forma eficaz todas las preguntas realizadas mas arriba).
+  //  -El Selector de criterios de orden (que dispondra la lista segun determinados atributos de cada Cerveza)
 
   //********************************************************************************************************************************************
 
@@ -122,36 +168,51 @@ export class BeerListComponent implements OnInit, OnDestroy {
     const idNuevaCerveza = 0;
     const nCerveza: Cerveza = {
       id: idNuevaCerveza,
-      nombre: this.cNNombre?.value,
-      SRM: this.cNSRM?.value,
-      estilo: this.cNEstilo?.value,
-      ibu: this.cNIBU?.value,
-      alcohol: this.cNAVB?.value,
-      img: this.cNIMG?.value === null ? "assets/cervezas/CervezaRandom.jpg" : "assets/cervezas/" + this.cNIMG?.value.substring(12),
-      info: this.cNInfo?.value === null ? "No hay descripcion disponible." : this.cNInfo?.value
+      Nombre: this.formNombre?.value,
+      SRM: this.formColor?.value,
+      Estilo: this.formEstilo?.value,
+      IBU: this.formIBU?.value,
+      ABV: this.formAlcohol?.value,
+      img: this.formImagen?.value === null ? "assets/cervezas/CervezaRandom.jpg" : "assets/cervezas/" + this.formImagen?.value.substring(12),
+      info: this.formInfo?.value === null ? "No hay descripcion disponible." : this.formInfo?.value
     }
     return nCerveza;
   }
 
   agregarNuevaCerveza() {
+    const nCerveza = this.crearNuevaCerveza()
+
     this.nuevaCerveza.valid ?
-      this.serviceCerveza.postCerveza(this.crearNuevaCerveza()).subscribe({
-        next: () => {
-          this.funcionExitosa();
-        },
-        error: (e) => {
-          alert("Error al intentar añadir una nueva cerveza al listado. Por favor intenta nuevamente. " + e)
-        }
-      })
+
+      !encontrarCervezaRepetida(this.cervezas,nCerveza.Nombre) ?
+
+        this.serviceCerveza.postCerveza(this.crearNuevaCerveza()).subscribe({
+          next: () => {
+            this.funcionExitosa();
+          },
+          error: (e) => {
+            this.modal.openModalError("Error al intentar añadir una nueva cerveza al listado. Por favor intenta nuevamente. " + e,false);
+          }
+        })
+        :
+        this.modal.openModalError("Ya existe una cerveza registrada con ese nombre.",true)
       :
       this.nuevaCerveza.markAllAsTouched();
   }
 
-  //- ¿Qué pasa si el usuario no proporciona todos los campos obligatorios? : RESUELTO
-  //- ¿Qué pasa si el usuario proporciona datos inválidos? : RESUELTO
-  //- ¿Qué pasa si el registro repetido no es exactamente igual, pero sí muy similar (por ejemplo, mismo nombre pero diferente mayúscula/minúscula)?
-  //- ¿Qué pasa si el usuario intenta crear un registro con un ID que ya existe? : RESUELTO, AUNQUE HAY QUE CHECKEAR
-  //- ¿Qué pasa si el formulario tiene campos con valores por defecto que deben ser validados? : RESUELTO
+  //FAQ - CREATE
+  //- ¿Qué pasa si el usuario no proporciona todos los campos obligatorios?
+  //- R:  this.nuevaCerveza.valid ? verifica si se cumplen los requisitos del formulario, en caso de no cumplirse se activan los Validators.
+  //- ¿Qué pasa si el usuario proporciona datos inválidos?
+  //- R: Cada input text/number tiene NgIf con condicionales a cumplir que responden a Validators asignados en la creacion del formGroup.
+  //- ¿Qué pasa si el registro repetido no es exactamente igual, pero sí muy similar (ej: mismo nombre pero diferente mayúscula/minúscula)?
+  //- R: Se agregó funcion encontrarRepetido(), que revisara si el nombre elegido ya fue ocupado en un registro anterior.*
+  //  *Cabe aclarar que distintas cervezas pueden tener mismo color, mismo alcohol, mismos IBUS y ser diferentes estilos.
+  //- ¿Qué pasa si el usuario intenta crear un registro con un ID que ya existe?
+  //- R: Esto no es posible ya que la asignacion de IDs (en esta etapa sin backend) se genera sin intervencion del usuario.**
+  //- **En una etapa mas avanzada (con Backend y base de datos, la base de datos se encargara de la gestion con autoincremento del campo ID).
+  //- ¿Qué pasa si el formulario tiene campos con valores por defecto que deben ser validados?
+  //- R: Todos los campos del formulario tienen Validators que verifican precisamente que los ingresos cumplan con determinados condicionales.
 
   //********************************************************************************************************************************************
 
@@ -159,40 +220,43 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   prepararEdicion(cerveza: Cerveza) {
     this.mostrarModal("editar");
-    this.cNNombre?.setValue(cerveza.nombre);
-    this.cNSRM?.setValue(cerveza.SRM);
-    this.cNEstilo?.setValue(cerveza.estilo);
-    this.cNIBU?.setValue(cerveza.ibu);
-    this.cNAVB?.setValue(cerveza.alcohol);
-    this.cNInfo?.setValue(cerveza.info);
+    this.formNombre?.setValue(cerveza.Nombre);
+    this.formColor?.setValue(cerveza.SRM);
+    this.formEstilo?.setValue(cerveza.Estilo);
+    this.formIBU?.setValue(cerveza.IBU);
+    this.formAlcohol?.setValue(cerveza.ABV);
+    this.formInfo?.setValue(cerveza.info);
     this.idDeCervezaSeleccionada = cerveza.id
   }
 
   editarCerveza() {
+
     const cervezaID: Cerveza | undefined = this.cervezas.find(x => x.id === this.idDeCervezaSeleccionada);
 
     if (cervezaID) {
       const eCerveza: Cerveza = {
         id: this.idDeCervezaSeleccionada,
-        nombre: this.cNNombre?.value !== cervezaID.nombre ? this.cNNombre?.value : cervezaID.nombre,
-        SRM: this.cNSRM?.value !== cervezaID.SRM ? this.cNSRM?.value : cervezaID.SRM,
-        estilo: this.cNEstilo?.value !== cervezaID.estilo ? this.cNEstilo?.value : cervezaID.estilo,
-        ibu: this.cNIBU?.value !== cervezaID.ibu ? this.cNIBU?.value : cervezaID.ibu,
-        alcohol: this.cNAVB?.value !== cervezaID.alcohol ? this.cNAVB?.value : cervezaID.alcohol,
-        img: this.cNIMG?.value === null ? cervezaID.img : this.cNIMG?.value,
-        info: this.cNInfo?.value !== cervezaID.info ? this.cNInfo?.value : cervezaID.info
+        Nombre: this.formNombre?.value !== cervezaID.Nombre ? this.formNombre?.value : cervezaID.Nombre,
+        SRM: this.formColor?.value !== cervezaID.SRM ? this.formColor?.value : cervezaID.SRM,
+        Estilo: this.formEstilo?.value !== cervezaID.Estilo ? this.formEstilo?.value : cervezaID.Estilo,
+        IBU: this.formIBU?.value !== cervezaID.IBU ? this.formIBU?.value : cervezaID.IBU,
+        ABV: this.formAlcohol?.value !== cervezaID.ABV ? this.formAlcohol?.value : cervezaID.ABV,
+        img: this.formImagen?.value === null ? cervezaID.img : this.formImagen?.value,
+        info: this.formInfo?.value !== cervezaID.info ? this.formInfo?.value : cervezaID.info
       }
 
-      this.sonIguales(cervezaID, eCerveza) ? alert("Ningun cambio detectado en los datos de la cerveza")
+      sonIguales(cervezaID, eCerveza) ?
+      (this.funcionExitosa()
+      ,this.modal.openModalError("Ningún cambio detectado en los datos de la cerveza.",true))
         :
-        this.serviceCerveza.updateCerveza(eCerveza, this.idDeCervezaSeleccionada).subscribe({
-          next: () => {
-            this.funcionExitosa();
-          },
-          error: (e) => {
-            alert("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + e)
-          }
-        })
+      this.serviceCerveza.updateCerveza(eCerveza, this.idDeCervezaSeleccionada).subscribe({
+        next: () => {
+          this.funcionExitosa();
+        },
+        error: (e) => {
+          this.modal.openModalError("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + e,false);
+        }
+      })
     }
   }
 
@@ -201,28 +265,32 @@ export class BeerListComponent implements OnInit, OnDestroy {
   //*****Borrar Cerveza*************************************************************************************************************************
 
   ultimarCerveza(cerveza: Cerveza) {
-    this.nombreDeCervezaSeleccionada = cerveza.nombre
-    this.estiloDeCervezaSeleccionada = cerveza.estilo
+    this.nombreDeCervezaSeleccionada = cerveza.Nombre
+    this.estiloDeCervezaSeleccionada = cerveza.Estilo
     this.idDeCervezaSeleccionada = cerveza.id
+    this.modal.openModalBorrar(cerveza.id, cerveza.Nombre, cerveza.Estilo);
   }
 
   borrarCerveza(id: number) {
     this.serviceCerveza.deleteCerveza(id).subscribe({
       next: () => {
-        this.ngOnInit();
-        document.getElementById("cerrarModalBorrar")?.click();
+        this.obtenerCervezas();
+        this.cerrarBtnBorrar.nativeElement.click();
         this.nombreDeCervezaSeleccionada = ""
         this.estiloDeCervezaSeleccionada = ""
         this.idDeCervezaSeleccionada = -1;
       },
       error: (e) => {
-        alert("Error al intentar borrar la cerveza seleccionada. Por favor intenta nuevamente. " + e);
+        this.modal.openModalError("Error al intentar borrar la cerveza seleccionada. Por favor intenta nuevamente. " + e,false);
       }
     })
   }
 
-  //- ¿Qué pasa si el usuario intenta eliminar un registro que no existe? : RESUELTO, SE TOMA ID COMO ENTRADA DE LA FUNCION
+  //FAQ - DELETE
+  //- ¿Qué pasa si el usuario intenta eliminar un registro que no existe?
+  //- R: La funcion borrarCerveza() existe en cada Cerveza, lo que permite tomar su ID al momento en el que el usuario decide borrarla.
   //- ¿Qué pasa si el registro que se intenta eliminar tiene dependencias con otros registros (por ejemplo, un pedido que tiene items asociados)?
+  //- R: (EN PROCESO)
 
   //********************************************************************************************************************************************
 
@@ -246,11 +314,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
   funcionExitosa() {
     this.ngOnInit();
     this.nuevaCerveza.reset();
-    document.getElementById("cerrarModal")?.click();
-  }
-
-  sonIguales(cerveza1: Cerveza, cerveza2: Cerveza): boolean {
-    return JSON.stringify(cerveza1) === JSON.stringify(cerveza2);
+    this.cerrarBtnModal.nativeElement.click();
   }
 
   //********************************************************************************************************************************************

@@ -1,10 +1,10 @@
 export interface Cerveza {
   id: number;
-  nombre: string;
-  SRM:number;
-  estilo: string;
-  ibu: number;
-  alcohol: number;
+  Nombre: string;
+  SRM: number;
+  Estilo: string;
+  IBU: number;
+  ABV: number;
   img: string;
   info: string;
 }

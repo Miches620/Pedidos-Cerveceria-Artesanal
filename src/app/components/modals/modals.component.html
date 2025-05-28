@@ -1,0 +1,39 @@
+<!--Modal de Errores-->
+<div class="backdrop" *ngIf="showModalError">
+    <div class="modal-container">
+        <i class="fa-solid fa-xmark" (click)="closeModal('error')"></i>
+        <div class="modal-header">
+            <h4 class="modal-title">Error de Ejecución</h4>
+        </div>
+        <div class="modal-body body-error">
+            <i class="fa-solid fa-triangle-exclamation" *ngIf="!icono"></i>
+            <i class="fa-solid fa-ban" *ngIf="icono"></i>
+            <p>{{mensaje}}</p>
+        </div>
+        <div class="modal-footer footer-error">
+            <button type="button" class="btn btn-error" (click)="closeModal('error')">OK</button>
+        </div>
+    </div>
+</div>
+
+<!--Modal de ELIMINACION-->
+<div class="backdrop" *ngIf="showModalBorrar">
+    <div class="modal-container">
+        <i class="fa-solid fa-xmark" (click)="closeModal('borrar')"></i>
+        <div class="modal-header">
+            <h4 class="modal-title">Eliminar Cerveza</h4>
+            <button type="button" class="btn-close" (click)="closeModal('borrar')" aria-label="Close"></button>
+        </div>
+        <div class="modal-body body-borrar">
+            <i class="fa-solid fa-ban"></i>
+            <div class="borrar-text">
+                <p>Estas seguro de que deseas eliminar: </p>
+                <p><b>{{nombreModalBorrar}} - {{estiloModalBorrar}} ?</b></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" (click)="closeModal('borrar')">Cancelar</button>
+            <button type="button" class="btn btn-danger" (click)="notificarBorrado()">¡ELIMINAR!</button>
+        </div>
+    </div>
+</div>
