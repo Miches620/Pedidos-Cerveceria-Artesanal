@@ -7,4 +7,6 @@ export interface Cerveza {
   ABV: number;
   img: string;
   info: string;
+  precio:number;
+  fav:boolean;
 }

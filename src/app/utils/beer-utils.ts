@@ -10,7 +10,7 @@ export function encontrarCervezaRepetida(lista: Cerveza[], nombre: string): bool
 }
 
 export function ordenarCervezas(
-  cervezas: Cerveza[], 
+  cervezas: Cerveza[],
   atributo: keyof Cerveza | ""
 ): Cerveza[] {
   if (!atributo) {
@@ -28,13 +28,37 @@ export const filtrarCervezas = debounce((
   cervezas: Cerveza[],
   criterio: keyof Cerveza,
   busqueda: string,
-  callback: (resultado : Cerveza[]) => void
+  callback: (tanda: Cerveza[][]) => void
 ) => {
   let resultado: Cerveza[];
-  if (criterio === 'Estilo') {
+  if (criterio === "Estilo") {
     resultado = cervezas.filter(x => x[criterio].toLowerCase().includes(busqueda.toLowerCase()));
-  } else{
+  } else {
     resultado = cervezas.filter(x => x[criterio].toString().startsWith(busqueda));
   }
-callback(resultado)
-},200);
+  const tanda = organizarCarousel(resultado)
+  callback(tanda)
+}, 400);
+
+/*export function pulsarBackspace(input: HTMLInputElement) {
+
+  const event = new KeyboardEvent('keydown', {
+    key: 'Backspace',
+    code: 'Backspace',
+    keyCode: 8,
+    which: 8,
+    bubbles: true,
+    cancelable: true,
+  });
+
+  input.dispatchEvent(event);
+}*/
+
+
+export function organizarCarousel(cerveza:Cerveza[]): Cerveza[][] {
+  const tandas: Cerveza[][] = [];
+  for (let i = 0; i < cerveza.length; i += 4) {
+    tandas.push(cerveza.slice(i, i + 4));
+  }
+  return tandas;
+}

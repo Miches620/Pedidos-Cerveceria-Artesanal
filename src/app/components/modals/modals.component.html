@@ -37,3 +37,27 @@
         </div>
     </div>
 </div>
+
+<!--Modal de Favoritos-->
+
+<!--<i class="fa-solid fa-beer-mug-empty"></i>-->
+
+<div class="backdrop" *ngIf="showModalFavoritos">
+    <div class="modal-container">
+        <i class="fa-solid fa-xmark" (click)="closeModal('borrar')"></i>
+        <div class="modal-header">
+            <h4 class="modal-title">Tus cervezas favoritas</h4>
+            <button type="button" class="btn-close" (click)="closeModal('borrar')" aria-label="Close"></button>
+        </div>
+        <div class="modal-body body-borrar">
+            <i class="fa-solid fa-ban"></i>
+            <div class="favs-text" *ngFor="let cerveza of favsDelUsuario">
+                <p><b>{{cerveza.Nombre}} - {{cerveza.Estilo}}</b></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" (click)="closeModal('borrar')">Volver</button>
+            <button type="button" class="btn">¡Lo Quiero!</button>
+        </div>
+    </div>
+</div>

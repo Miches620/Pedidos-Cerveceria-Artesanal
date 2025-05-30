@@ -7,17 +7,30 @@
     align-items: center;
 }
 
+
+.header-control {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    /*gap: .5rem;*/
+}
+
 /*Estilos Admin*/
 
-.btn.btnCrear {
+.btn.btnCrear,
+.btnCarrito,
+.btn-favoritos {
     background-color: rgba(255, 255, 255, 0.952);
     border-color: rgb(156, 123, 13);
     border-radius: 4px;
     width: 4rem;
+    margin-left: .5rem;
 }
 
 .btn.btnCrear:hover,
-.busqueda:hover {
+.busqueda:hover,
+.btnCarrito:hover {
     background-color: rgb(156, 123, 13);
     border-color: rgb(255, 255, 255);
     color: white;
@@ -25,15 +38,67 @@
     transition: .75s;
 }
 
+.btn-favoritos{
+    border: 1px solid;
+    border-color: rgb(54, 54, 54);
+}
+
+.btn-favoritos>.fa-heart{
+    color:rgb(156, 123, 13)
+}
+
+.btn-favoritos:hover {
+    border: 0;
+    background-color:  rgba(54, 54, 54, .80);
+    color: white;
+    border-radius: 4px;
+    transition: .75s;
+}
+
 .btn.btnCrear:hover>.fa-beer,
 .btn.btnCrear:hover>.fa-plus-circle,
-.busqueda:hover>.fa-solid {
+.busqueda:hover>.fa-solid,
+.btnCarrito:hover>.fa-cart-shopping,
+.btn-favoritos:hover>.fa-heart {
     color: white;
     transition: 0s
 }
 
-.btn.btnCrear:not(:hover) {
+.btnCarrito:hover>.cantidad {
+    color: rgb(54, 54, 54);
+    font-weight: bold;
+    transition: 0s
+}
+
+.btn.btnCrear:not(:hover),
+.btnCarrito:not(:hover) {
     transition: .75s
+}
+
+.btnCarrito {
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+}
+
+.cantidad {
+    position: absolute;
+    top: 0;
+    right: 0;
+    /*  Puedes ajustar el tamaño y el color */
+    font-size: 10px;
+    color: white;
+    /*background-color: rgba(184, 50, 50, 0.767);*/
+    padding: 1px 6px;
+    border-radius: 50%;
+    margin: .45rem 1.2rem;
+    text-align: center;
+}
+
+.fa-cart-shopping,
+.btn-favoritos>.fa-heart {
+    font-size: 1.5rem;
 }
 
 /*Estilos del Filtro*/
@@ -43,24 +108,69 @@
     display: flex;
     margin-bottom: 1rem;
     gap: 1rem;
-    width: 100%;
+    /*width: 100%;*/
     justify-content: flex-end;
 }
 
+.usuario-bar{
+    display: flex;
+    margin-bottom: 1rem;
+    justify-content: flex-end;
+}
 
+/*Header Catalogo*/
+
+.header-catalogo {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
 
 /*Estilos del Catalogo*/
 
+
 .catalogo {
     padding: .2rem .2rem .2rem .2rem;
-    display: grid;
     width: 100%;
     height: 61.2rem;
-    overflow-y: scroll;
-    grid-auto-flow: column;
-    grid-template-columns: repeat(4, 1fr);
-    grid-gap: 10px;
-    grid-auto-flow: row;
+}
+
+.carousel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    overflow: hidden;
+    width: 1206.38px
+}
+
+
+.cards-wrapper {
+    padding: .5rem .2rem 0 .2rem;
+    gap: 1rem;
+    height: 31rem;
+    display: grid;
+    grid-template-columns: repeat(1fr);
+}
+
+.carousel-indicators {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    top: -2.5rem;
+}
+
+.carousel-indicators>button {
+    background-color: rgba(54, 54, 54, 0.486);
+    /*background-color:rgb(156, 123, 13)*/
+}
+
+.carousel .carousel-item {
+    transition-duration: 1.75s;
+}
+
+.cards-wrapper {
+    display: flex;
+    flex-direction: row;
 }
 
 .card {
@@ -106,6 +216,16 @@
     position: relative;
 }
 
+.card-img-top {
+    object-fit: cover;
+}
+
+.favoritos {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+}
+
 .card-body {
     display: flex;
     position: relative;
@@ -113,13 +233,15 @@
     align-items: center;
     justify-content: flex-end;
     margin: .5rem;
+    padding: 0;
 }
 
 .card-title {
     text-align: center;
 }
 
-.btn, .barraDeBusqueda {
+.btn,
+.barraDeBusqueda {
     background-color: rgb(255, 255, 255);
     color: rgb(54, 54, 54);
     text-decoration: none;
@@ -128,7 +250,14 @@
     text-align: center;
     padding: .5rem;
     border-color: rgb(54, 54, 54);
-    ;
+}
+
+.btnCarrito {
+    width: 4rem;
+}
+
+.btn-agregar {
+    margin-bottom: 1.5rem;
 }
 
 .btn:hover {
@@ -137,42 +266,67 @@
     transition: .75s;
 }
 
-.modoAdmin {
+.admin-card {
     display: flex;
     justify-content: flex-end;
     padding: .5rem .5rem 0rem 1rem;
 }
 
 .editar,
-.borrar {
-    background-color: rgb(255, 255, 255);
+.borrar,
+.favs,
+.nofavs {
+    background-color: rgba(255, 255, 255, 0.01);
     border-color: rgba(54, 54, 54, .001);
     width: 1.75rem;
     text-align: center;
 }
 
-.fa {
+.fa-pencil,
+.fa-trash {
     color: rgba(54, 54, 54, .80);
 }
 
-.fa:hover {
+.fa-pencil:hover,
+.fa-trash:hover,
+.fa-regular:hover {
     color: rgb(156, 123, 13);
+    transition: .75s;
+}
+
+.fa-regular,
+.fa-heart {
+    color: rgba(54, 54, 54, 0.2);
+}
+
+.favs {
+    position: absolute;
+    z-index: 1;
+}
+
+.nofavs {
+    position: absolute;
+    z-index: 2;
 }
 
 .fa:not(:hover),
+.fa-regular:not(:hover),
 .btn:not(:hover),
 .card:not(:hover),
-.busqueda:not(:hover) {
+.busqueda:not(:hover),
+.btn-favoritos:not(:hover) {
     transition: .75s;
 }
 
 .fa-beer,
 .fa-plus-circle,
-.fa-solid {
+.fa-solid,
+.fa-favs,
+.fa-cart-shopping {
     color: rgb(156, 123, 13);
 }
 
-.fa-solid{
+.fa-solid {
     align-self: center;
 }
 
@@ -190,9 +344,9 @@
 .barraDeBusqueda {
     border-radius: 6px;
     border-color: rgb(156, 123, 13);
-    text-align:left;
+    text-align: left;
 }
 
-.busquedaFallida{
-   justify-self: center;
+.busquedaFallida {
+    justify-self: center;
 }

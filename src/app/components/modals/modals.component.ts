@@ -1,10 +1,10 @@
-import { NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { Component, Output, EventEmitter, ViewChild } from '@angular/core';
 import { BeerListComponent } from '../beer-list/beer-list.component';
 
 @Component({
   selector: 'app-modals',
-  imports: [NgIf],
+  imports: [NgIf, NgFor],
   templateUrl: './modals.component.html',
   styleUrl: './modals.component.css'
 })
@@ -21,8 +21,11 @@ export class ModalsComponent {
 
   showModalError: boolean = false;
   showModalBorrar: boolean = false;
+  showModalFavoritos: boolean = false;
   mensaje: string = '';
   icono:boolean=false;
+
+  favsDelUsuario:any[]=[]
 
   openModalError(mensaje: string, aviso:boolean) {
     this.mensaje = mensaje;
@@ -40,6 +43,16 @@ export class ModalsComponent {
     modal === "error" ? this.showModalError = false
       : this.showModalBorrar = false;
   }
+
+  /*openModalFavs<T>(lista:T[]){
+    this.showModalFavoritos=true;
+    this.favsDelUsuario= lista;
+  }*/
+
+  /*closeModalFavs(){
+    this.showModalFavoritos=false;
+    this.favsDelUsuario= [];
+  }*/
 
   notificarBorrado() {
     this.notificarAccion.emit(this.idModalBorrar);

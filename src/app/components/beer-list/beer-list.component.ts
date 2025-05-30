@@ -3,13 +3,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CervezaService } from '../../services/cerveza.service';
 import { Cerveza } from '../../models/cerveza/cerveza.module';
-import { NgFor, NgIf, NgOptimizedImage } from '@angular/common';
+import { NgClass, NgFor, NgIf, NgOptimizedImage } from '@angular/common';
 import { ModalsComponent } from '../modals/modals.component';
-import { encontrarCervezaRepetida, filtrarCervezas, ordenarCervezas, sonIguales } from '../../utils/beer-utils';
+import { encontrarCervezaRepetida, filtrarCervezas, ordenarCervezas, organizarCarousel, sonIguales } from '../../utils/beer-utils';
 
 @Component({
   selector: 'app-beer-list',
-  imports: [NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent],
+  imports: [NgClass, NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent],
   templateUrl: './beer-list.component.html',
   styleUrl: './beer-list.component.css'
 })
@@ -27,6 +27,18 @@ export class BeerListComponent implements OnInit, OnDestroy {
   @ViewChild(ModalsComponent, { static: false })
   modal!: ModalsComponent;
 
+  //Admin
+  modoAdmin: boolean = false;
+
+  //Favoritos
+  favs:boolean=false;
+  favoritos:Cerveza[]=[];
+  filtroFavoritos:boolean=false;
+
+  //Carrito
+  carritoDeCompras:Cerveza[]=[];
+  estaVacio:boolean=true;
+  elementosEnCarrito:number=0;
 
   //Variables de almacenamiento de base de datos
   cervezas: Cerveza[] = [];
@@ -48,6 +60,9 @@ export class BeerListComponent implements OnInit, OnDestroy {
   //Variables para filtros y busqueda
   noMatch: boolean = false;
 
+  //Variable de Carousel:
+  tandas:Cerveza[][]=[]
+
   constructor(private serviceCerveza: CervezaService, private crearCerveza: FormBuilder) {
     this.nuevaCerveza = this.crearCerveza.group({
       cervezaNombre: ['', [Validators.required, Validators.minLength(1)]],
@@ -56,17 +71,22 @@ export class BeerListComponent implements OnInit, OnDestroy {
       cervezaIBU: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
       cervezaABV: ['', [Validators.required, Validators.min(0), Validators.max(90)]],
       cervezaIMG: [''],
-      cervezaInfo: ['', [Validators.minLength(20), Validators.maxLength(280)]]
+      cervezaInfo: ['', [Validators.minLength(20), Validators.maxLength(280)]],
+      cervezaPrecio:['',[Validators.required, Validators.min(0), Validators.max(50000)]]
     });
   }
 
   ngOnInit(): void {
+
+    this.buscardorInput.nativeElement.placeholder = "Estilo";
 
     this.noMatch = false;
 
     this.obtenerEstilos();
 
     this.obtenerCervezas();
+
+    this.tandas = organizarCarousel(this.cervezas);
 
   }
 
@@ -102,6 +122,10 @@ export class BeerListComponent implements OnInit, OnDestroy {
     return this.nuevaCerveza.get('cervezaInfo');
   }
 
+    get formPrecio() {
+    return this.nuevaCerveza.get('cervezaPrecio');
+  }
+
   //********************************************************************************************************************************************
 
   //*****Visualizacion del listado de Cervezas**************************************************************************************************
@@ -119,29 +143,31 @@ export class BeerListComponent implements OnInit, OnDestroy {
     })
   }
 
-OrdenarPor(atributo: keyof Cerveza | ""): void {
-  this.buscardorInput.nativeElement.value = "";
-  this.buscardorInput.nativeElement.placeholder = atributo || "Estilo";
+  OrdenarPor(atributo: keyof Cerveza | ""): void {
+    this.buscardorInput.nativeElement.value = "";
+    this.buscardorInput.nativeElement.placeholder = atributo || "Estilo";
 
-  this.cervezasFiltradas = ordenarCervezas(this.cervezas, atributo);
-}
+    this.cervezasFiltradas = ordenarCervezas(this.cervezas, atributo);
+  }
 
 
-  buscar(): void {
-  const busqueda = this.buscardorInput.nativeElement.value;
-  const criterio = this.buscardorInput.nativeElement.placeholder as keyof Cerveza;
+  buscar(event?: KeyboardEvent) {
+    const busqueda = this.buscardorInput.nativeElement.value;
+    const tecla = event?.key;
+    const criterio = this.buscardorInput.nativeElement.placeholder as keyof Cerveza;
 
-  /*if (busqueda.length === 0) {
-    this.ngOnInit();
-    return
-  }*/
- busqueda.length>0?
-filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
-  this.cervezasFiltradas = resultado;
-  this.noMatch = this.cervezasFiltradas.length === 0;})
-  :
-  this.ngOnInit();   
-  } 
+    const teclasExcluidas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt'];
+    if (tecla && teclasExcluidas.includes(tecla)) return;
+
+    busqueda === "" ?
+      this.ngOnInit()
+      :
+      filtrarCervezas(this.cervezas, criterio, busqueda, (resultado) => {
+        this.tandas = resultado;
+        /*this.tandas =organizarCarousel(this.cervezasFiltradas)*/
+        this.noMatch = this.tandas.length === 0;
+      })
+  }
 
 
 
@@ -174,7 +200,9 @@ filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
       IBU: this.formIBU?.value,
       ABV: this.formAlcohol?.value,
       img: this.formImagen?.value === null ? "assets/cervezas/CervezaRandom.jpg" : "assets/cervezas/" + this.formImagen?.value.substring(12),
-      info: this.formInfo?.value === null ? "No hay descripcion disponible." : this.formInfo?.value
+      info: this.formInfo?.value === null ? "No hay descripcion disponible." : this.formInfo?.value,
+      precio:this.formPrecio?.value,
+      fav:false
     }
     return nCerveza;
   }
@@ -184,18 +212,18 @@ filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
 
     this.nuevaCerveza.valid ?
 
-      !encontrarCervezaRepetida(this.cervezas,nCerveza.Nombre) ?
+      !encontrarCervezaRepetida(this.cervezas, nCerveza.Nombre) ?
 
         this.serviceCerveza.postCerveza(this.crearNuevaCerveza()).subscribe({
           next: () => {
             this.funcionExitosa();
           },
           error: (e) => {
-            this.modal.openModalError("Error al intentar añadir una nueva cerveza al listado. Por favor intenta nuevamente. " + e,false);
+            this.modal.openModalError("Error al intentar añadir una nueva cerveza al listado. Por favor intenta nuevamente. " + e, false);
           }
         })
         :
-        this.modal.openModalError("Ya existe una cerveza registrada con ese nombre.",true)
+        this.modal.openModalError("Ya existe una cerveza registrada con ese nombre.", true)
       :
       this.nuevaCerveza.markAllAsTouched();
   }
@@ -242,21 +270,23 @@ filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
         IBU: this.formIBU?.value !== cervezaID.IBU ? this.formIBU?.value : cervezaID.IBU,
         ABV: this.formAlcohol?.value !== cervezaID.ABV ? this.formAlcohol?.value : cervezaID.ABV,
         img: this.formImagen?.value === null ? cervezaID.img : this.formImagen?.value,
-        info: this.formInfo?.value !== cervezaID.info ? this.formInfo?.value : cervezaID.info
+        info: this.formInfo?.value !== cervezaID.info ? this.formInfo?.value : cervezaID.info,
+        precio: this.formPrecio?.value !== cervezaID.precio ? this.formPrecio?.value : cervezaID.precio,
+        fav:false
       }
 
       sonIguales(cervezaID, eCerveza) ?
-      (this.funcionExitosa()
-      ,this.modal.openModalError("Ningún cambio detectado en los datos de la cerveza.",true))
+        (this.funcionExitosa()
+          , this.modal.openModalError("Ningún cambio detectado en los datos de la cerveza.", true))
         :
-      this.serviceCerveza.updateCerveza(eCerveza, this.idDeCervezaSeleccionada).subscribe({
-        next: () => {
-          this.funcionExitosa();
-        },
-        error: (e) => {
-          this.modal.openModalError("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + e,false);
-        }
-      })
+        this.serviceCerveza.updateCerveza(eCerveza, this.idDeCervezaSeleccionada).subscribe({
+          next: () => {
+            this.funcionExitosa();
+          },
+          error: (e) => {
+            this.modal.openModalError("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + e, false);
+          }
+        })
     }
   }
 
@@ -281,7 +311,7 @@ filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
         this.idDeCervezaSeleccionada = -1;
       },
       error: (e) => {
-        this.modal.openModalError("Error al intentar borrar la cerveza seleccionada. Por favor intenta nuevamente. " + e,false);
+        this.modal.openModalError("Error al intentar borrar la cerveza seleccionada. Por favor intenta nuevamente. " + e, false);
       }
     })
   }
@@ -317,5 +347,38 @@ filtrarCervezas(this.cervezas, criterio, busqueda, (resultado)=>{
     this.cerrarBtnModal.nativeElement.click();
   }
 
+  agregarFavoritos(cerveza:Cerveza){
+    this.favoritos.push(cerveza);
+    cerveza.fav=true;
+  }
+
+   quitarDeFavoritos(cerveza:Cerveza){
+    this.favoritos = this.favoritos.filter(x => x !== cerveza);
+    cerveza.fav=false;
+  }
+
+  agregarAlCarrito(cerveza:Cerveza){
+    this.carritoDeCompras.push(cerveza);
+    this.elementosEnCarrito+=1;
+    this.estaVacio=false;
+    console.log(this.carritoDeCompras);
+    console.log(this.elementosEnCarrito)
+  }
+
+  /*abrirFavoritos(){
+this.modal.openModalFavs(this.favoritos)
+  }*/
+
+verTusFavoritos(){
+const favoritos = organizarCarousel(this.favoritos)
+this.tandas === favoritos?
+(this.tandas = organizarCarousel(this.cervezas),
+this.filtroFavoritos=false)
+:
+this.tandas = favoritos
+this.buscardorInput.nativeElement.placeholder = "Estilo";
+this.buscardorInput.nativeElement.value = "";
+this.filtroFavoritos=true;
+}
   //********************************************************************************************************************************************
 }
