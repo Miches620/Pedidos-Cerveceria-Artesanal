@@ -6,10 +6,13 @@ import { Cerveza } from '../../models/cerveza/cerveza.module';
 import { NgClass, NgFor, NgIf, NgOptimizedImage } from '@angular/common';
 import { ModalsComponent } from '../modals/modals.component';
 import { encontrarCervezaRepetida, filtrarCervezas, ordenarCervezas, organizarCarousel, sonIguales } from '../../utils/beer-utils';
+import { SharedEventService } from '../../services/shared-event.service';
+import { CarritoComponent } from '../carrito/carrito.component';
+import { Usuario } from '../../models/cerveza/usuario.module';
 
 @Component({
   selector: 'app-beer-list',
-  imports: [NgClass, NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent],
+  imports: [NgClass, NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent, CarritoComponent],
   templateUrl: './beer-list.component.html',
   styleUrl: './beer-list.component.css'
 })
@@ -24,21 +27,20 @@ export class BeerListComponent implements OnInit, OnDestroy {
   @ViewChild('cerrarBtnBorrar', { static: true })
   cerrarBtnBorrar!: ElementRef<HTMLButtonElement>;
 
+  @ViewChild('btnfavoritos', { static: true })
+  btnfavoritos!: ElementRef<HTMLButtonElement>;
+
   @ViewChild(ModalsComponent, { static: false })
   modal!: ModalsComponent;
 
-  //Admin
-  modoAdmin: boolean = false;
+  @ViewChild(CarritoComponent, { static: false })
+  carrito!: CarritoComponent;
 
   //Favoritos
-  favs:boolean=false;
-  favoritos:Cerveza[]=[];
-  filtroFavoritos:boolean=false;
-
-  //Carrito
-  carritoDeCompras:Cerveza[]=[];
-  estaVacio:boolean=true;
-  elementosEnCarrito:number=0;
+  favs: boolean = false;
+  favoritos: Cerveza[] = [];
+  filtroFavoritos: boolean = false;
+  OnFavoritos: boolean = false;
 
   //Variables de almacenamiento de base de datos
   cervezas: Cerveza[] = [];
@@ -60,10 +62,23 @@ export class BeerListComponent implements OnInit, OnDestroy {
   //Variables para filtros y busqueda
   noMatch: boolean = false;
 
-  //Variable de Carousel:
-  tandas:Cerveza[][]=[]
 
-  constructor(private serviceCerveza: CervezaService, private crearCerveza: FormBuilder) {
+  //Variable de Carousel:
+  tandas: Cerveza[][] = []
+
+  //Variable contador del Carrito
+  elementosEnCarrito: number = 0;
+
+  //Variables de Usuarios **ESTO ES PROVISORIO. A futuro Login tendra su propio componente.
+  usuarioProv: Usuario[] = [];
+  isLogin: boolean = false;
+  nombreDeUsuario: string = "";
+  administrador: string = "";
+  //Admin-User
+  modoAdmin: boolean = false;
+  modoUser: boolean = false;
+
+  constructor(private serviceCerveza: CervezaService, private crearCerveza: FormBuilder, private sharedEvent: SharedEventService) {
     this.nuevaCerveza = this.crearCerveza.group({
       cervezaNombre: ['', [Validators.required, Validators.minLength(1)]],
       cervezaSRM: ['', [Validators.required, Validators.min(1), Validators.max(50)]],
@@ -72,7 +87,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
       cervezaABV: ['', [Validators.required, Validators.min(0), Validators.max(90)]],
       cervezaIMG: [''],
       cervezaInfo: ['', [Validators.minLength(20), Validators.maxLength(280)]],
-      cervezaPrecio:['',[Validators.required, Validators.min(0), Validators.max(50000)]]
+      cervezaPrecio: ['', [Validators.required, Validators.min(0), Validators.max(50000)]]
     });
   }
 
@@ -86,7 +101,11 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
     this.obtenerCervezas();
 
-    this.tandas = organizarCarousel(this.cervezas);
+    this.filtrarFavoritos();
+
+    this.obtenerUsuarios();//Provisorio con la unica finalidad de enseñar las opciones de user o admin
+
+    this.sharedEvent.contador$.subscribe(contador => { this.elementosEnCarrito = contador })
 
   }
 
@@ -122,7 +141,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
     return this.nuevaCerveza.get('cervezaInfo');
   }
 
-    get formPrecio() {
+  get formPrecio() {
     return this.nuevaCerveza.get('cervezaPrecio');
   }
 
@@ -147,13 +166,15 @@ export class BeerListComponent implements OnInit, OnDestroy {
     this.buscardorInput.nativeElement.value = "";
     this.buscardorInput.nativeElement.placeholder = atributo || "Estilo";
 
-    this.cervezasFiltradas = ordenarCervezas(this.cervezas, atributo);
+    this.cervezasFiltradas = ordenarCervezas(this.tandas, atributo);
+    this.tandas = organizarCarousel(this.cervezasFiltradas);
   }
 
 
   buscar(event?: KeyboardEvent) {
-    const busqueda = this.buscardorInput.nativeElement.value;
     const tecla = event?.key;
+
+    const busqueda = this.buscardorInput.nativeElement.value;
     const criterio = this.buscardorInput.nativeElement.placeholder as keyof Cerveza;
 
     const teclasExcluidas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt'];
@@ -162,14 +183,11 @@ export class BeerListComponent implements OnInit, OnDestroy {
     busqueda === "" ?
       this.ngOnInit()
       :
-      filtrarCervezas(this.cervezas, criterio, busqueda, (resultado) => {
+      filtrarCervezas(this.tandas, criterio, busqueda, (resultado) => {
         this.tandas = resultado;
-        /*this.tandas =organizarCarousel(this.cervezasFiltradas)*/
         this.noMatch = this.tandas.length === 0;
       })
   }
-
-
 
   //FAQ - READ
   //- ¿Qué pasa si no hay registros que coincidan con los criterios de búsqueda?
@@ -201,8 +219,8 @@ export class BeerListComponent implements OnInit, OnDestroy {
       ABV: this.formAlcohol?.value,
       img: this.formImagen?.value === null ? "assets/cervezas/CervezaRandom.jpg" : "assets/cervezas/" + this.formImagen?.value.substring(12),
       info: this.formInfo?.value === null ? "No hay descripcion disponible." : this.formInfo?.value,
-      precio:this.formPrecio?.value,
-      fav:false
+      precio: this.formPrecio?.value,
+      fav: false
     }
     return nCerveza;
   }
@@ -219,7 +237,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
             this.funcionExitosa();
           },
           error: (e) => {
-            this.modal.openModalError("Error al intentar añadir una nueva cerveza al listado. Por favor intenta nuevamente. " + e, false);
+            this.modal.openModalError("Error al intentar añadir una nueva cerveza al listado. Por favor intenta nuevamente. " + JSON.stringify(e), false);
           }
         })
         :
@@ -254,6 +272,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
     this.formIBU?.setValue(cerveza.IBU);
     this.formAlcohol?.setValue(cerveza.ABV);
     this.formInfo?.setValue(cerveza.info);
+    this.formPrecio?.setValue(cerveza.precio);
     this.idDeCervezaSeleccionada = cerveza.id
   }
 
@@ -272,7 +291,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
         img: this.formImagen?.value === null ? cervezaID.img : this.formImagen?.value,
         info: this.formInfo?.value !== cervezaID.info ? this.formInfo?.value : cervezaID.info,
         precio: this.formPrecio?.value !== cervezaID.precio ? this.formPrecio?.value : cervezaID.precio,
-        fav:false
+        fav: cervezaID.fav
       }
 
       sonIguales(cervezaID, eCerveza) ?
@@ -284,7 +303,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
             this.funcionExitosa();
           },
           error: (e) => {
-            this.modal.openModalError("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + e, false);
+            this.modal.openModalError("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + JSON.stringify(e), false);
           }
         })
     }
@@ -311,7 +330,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
         this.idDeCervezaSeleccionada = -1;
       },
       error: (e) => {
-        this.modal.openModalError("Error al intentar borrar la cerveza seleccionada. Por favor intenta nuevamente. " + e, false);
+        this.modal.openModalError("Error al intentar borrar la cerveza seleccionada. Por favor intenta nuevamente. " + JSON.stringify(e), false);
       }
     })
   }
@@ -347,38 +366,77 @@ export class BeerListComponent implements OnInit, OnDestroy {
     this.cerrarBtnModal.nativeElement.click();
   }
 
-  agregarFavoritos(cerveza:Cerveza){
+  agregarFavoritos(cerveza: Cerveza) {
     this.favoritos.push(cerveza);
-    cerveza.fav=true;
+    cerveza.fav = true;
   }
 
-   quitarDeFavoritos(cerveza:Cerveza){
+  quitarDeFavoritos(cerveza: Cerveza) {
     this.favoritos = this.favoritos.filter(x => x !== cerveza);
-    cerveza.fav=false;
+    cerveza.fav = false;
+    if (this.favoritos.length === 0) { this.filtroFavoritos = false; this.filtrarFavoritos(); this.OnFavoritos = false }
   }
 
-  agregarAlCarrito(cerveza:Cerveza){
-    this.carritoDeCompras.push(cerveza);
-    this.elementosEnCarrito+=1;
-    this.estaVacio=false;
-    console.log(this.carritoDeCompras);
-    console.log(this.elementosEnCarrito)
+  agregarAlCarrito(cerveza: Cerveza) {
+    this.sharedEvent.emitirCervezaSeleccionada(cerveza);
   }
 
-  /*abrirFavoritos(){
-this.modal.openModalFavs(this.favoritos)
-  }*/
+  verTusFavoritos() {
+    this.OnFavoritos = !this.OnFavoritos
+    const favoritos = organizarCarousel(this.favoritos)
 
-verTusFavoritos(){
-const favoritos = organizarCarousel(this.favoritos)
-this.tandas === favoritos?
-(this.tandas = organizarCarousel(this.cervezas),
-this.filtroFavoritos=false)
-:
-this.tandas = favoritos
-this.buscardorInput.nativeElement.placeholder = "Estilo";
-this.buscardorInput.nativeElement.value = "";
-this.filtroFavoritos=true;
-}
+    this.OnFavoritos === false ? this.tandas = organizarCarousel(this.cervezas)
+      :
+      this.tandas = favoritos,
+      this.buscardorInput.nativeElement.value = ""
+  }
+
+  filtrarFavoritos() {
+    !this.filtroFavoritos ?
+      this.tandas = organizarCarousel(this.cervezas) :
+      this.tandas = organizarCarousel(this.favoritos);
+  }
+
+  abrirCarrito() {
+    this.carrito.openModalCarrito()
+  }
+
+  login() {
+    this.modal.openModalLogin();
+  }
+
+  loginIn(event: boolean) { //Provisorio con fines demostrativos. A futuro: componente login con toda su logica y CRUD.
+
+    if (event) {
+
+      const userLogin = this.modal.getUser()?.value;
+      const passLogin = this.modal.getPass()?.value;
+
+      const login = this.usuarioProv.find(x => x.user === userLogin && x.pass === passLogin)
+
+      if (login) {
+        this.isLogin = true;
+        if (login.user === "Comprador") { this.modoUser = true; this.nombreDeUsuario = login.user; this.modoAdmin=false;}
+        else { this.modoAdmin = true; this.administrador = login.user; this.modoUser=false; }
+      } else { this.modal.openModalError("Usuario y/o Contraseña incorrecta.", true) }
+
+    }
+  }
+
+  logOut() {
+    this.modoAdmin = false;
+    this.modoUser = false;
+    this.isLogin = false;
+    this.nombreDeUsuario = "";
+    this.administrador = "";
+    this.ngOnInit();
+  }
+
+  obtenerUsuarios() { //Provisorio. Entiendo la gravedad de exponer las credenciales de esta forma. Es solo con fines demostrativos.
+    this.serviceCerveza.getUsers().subscribe((data) => {
+      this.usuarioProv = data
+    });
+  }
+
   //********************************************************************************************************************************************
 }

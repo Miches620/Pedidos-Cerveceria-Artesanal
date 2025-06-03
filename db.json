@@ -1,5 +1,19 @@
 {
-  "cervezas": [
+  "login": [
+    {
+      "id": 1,
+      "user": "Comprador",
+      "pass": "User1234#",
+      "email": "emailInventado@prueba.com"
+    },
+    {
+      "id": 2,
+      "user": "Admin",
+      "pass": "Admin1234$",
+      "email": "emailInventado2@prueba.com"
+    }
+  ],
+  "Cervezas": [
     {
       "id": 1,
       "Nombre": "Frenesi",
@@ -9,8 +23,8 @@
       "ABV": 6.5,
       "img": "assets/cervezas/IPA.jpg",
       "info": "Cerveza dorada y de cuerpo medio. Tiene un perfil cítrico y frutal aportado por los lúpulos norteamericanos. En aroma pueden sentirse notas a pino, cáscara de naranja y pomelo. Su amargor balanceado da como resultado una cerveza compleja y refrescante.",
-      "precio":4000,
-      "fav":false
+      "precio": 4000,
+      "fav": false
     },
     {
       "id": 2,
@@ -21,8 +35,8 @@
       "ABV": 5.5,
       "img": "assets/cervezas/ESB.jpg",
       "info": "Cerveza de color cobrizo y amargor moderado, con un gran balance entre lúpulo y malta.  Los lúpulos ingleses le aportan un aroma floral y herbal, mientras que las maltas le otorgan notas a caramelo.",
-      "precio":3750,
-      "fav":false
+      "precio": 3750,
+      "fav": false
     },
     {
       "id": 3,
@@ -33,8 +47,8 @@
       "ABV": 4.9,
       "img": "assets/cervezas/Porter.jpg",
       "info": "Cerveza oscura con notas a café y chocolate. El balance de maltas especiales le aporta un gran carácter.",
-      "precio":3600,
-      "fav":false
+      "precio": 3600,
+      "fav": false
     },
     {
       "id": 4,
@@ -45,8 +59,8 @@
       "ABV": 5,
       "img": "assets/cervezas/Neipa1.jpg",
       "info": "Cerveza de color amarillento y cuerpo jugoso. Refrescante y de gran tomabilidad, posee aromas y sabores a frutas tropicales otorgados por sus lúpulos norteamericanos.",
-      "precio":4400,
-      "fav":false
+      "precio": 4400,
+      "fav": false
     },
     {
       "id": 5,
@@ -57,8 +71,8 @@
       "ABV": 6,
       "img": "assets/cervezas/Neipa2.jpg",
       "info": "Usamos una combinación de los lúpulos Cryo POP, Mosaic e IDaho 7 para lograr esta explosión de frutas tropicales llamada NEIPA.",
-      "precio":5500,
-      "fav":false
+      "precio": 5500,
+      "fav": false
     },
     {
       "id": 6,
@@ -69,8 +83,8 @@
       "ABV": 5.3,
       "img": "assets/cervezas/CreamAle.jpg",
       "info": "Cerveza ligera, resfrescante y de fácil tomabilidad. Posee un color dorado intenso y aroma con leves notas a lúpulo y malta. En boca se destaca su carácter maltoso. Su cuerpo medio y bajo amargor la convierten en una cerveza liviana.",
-      "precio":3350,
-      "fav":false
+      "precio": 3350,
+      "fav": false
     },
     {
       "id": 7,
@@ -81,8 +95,8 @@
       "ABV": 5.4,
       "img": "assets/cervezas/Irish.jpg",
       "info": "De color ámbar, leve dulzor y cuerpo medio. En aroma se destacan notas a caramelo típicas de las maltas utilizadas, que a su vez aportan dulzor inicial en boca. Con un logrado final seco y amargor leve.",
-      "precio":3350,
-      "fav":false
+      "precio": 3350,
+      "fav": false
     },
     {
       "id": 8,
@@ -93,8 +107,8 @@
       "ABV": 5.7,
       "img": "assets/cervezas/APA.jpg",
       "info": "Cerveza dorada de perfil lupulado. El aporte de las maltas hace que su amargor no sea tan elevado, alcanzando un gran equilibrio con los lúpulos, que aportan notas cítricas y a frutas tropicales.",
-      "precio":3850,
-      "fav":false
+      "precio": 3850,
+      "fav": false
     },
     {
       "id": 9,
@@ -105,8 +119,8 @@
       "ABV": 6.9,
       "img": "assets/cervezas/Honey.jpg",
       "info": "Cerveza dorada de bajo amargor. El agregado de miel natural de abeja le aporta un sutil dulzor que armoniza con una alta cuota de alcohol.",
-      "precio":3400,
-      "fav":false
+      "precio": 3400,
+      "fav": false
     },
     {
       "id": 10,
@@ -117,8 +131,8 @@
       "ABV": 5.5,
       "img": "assets/cervezas/Hoppy.jpg",
       "info": "La gran tomabilidad de las lagers alemanas se combina con el complejo y distintivo sabor de los lúpulos norteamericanos dando lugar a una cerveza fácil de tomar y con un nivel de amargor que es superior al de una lager tradicional, pero no tan fuerte como el de una IPA.",
-      "precio":3650,
-      "fav":false
+      "precio": 3650,
+      "fav": false
     },
     {
       "id": 11,
@@ -129,8 +143,17 @@
       "ABV": 5.1,
       "img": "assets/cervezas/Vienna.jpg",
       "info": "Wolfgang Amadeus Mozart alcanzó en Viena la máxima inspiración para componer algunas de sus obras maestras más famosas. Nosotros, a su vez, nos inspiramos en él para nombrar a esta VIENNA LAGER de color ámbar, carácter maltoso, sutil tostado y delicadas notas a pan y cereales.",
-      "precio":3300,
-      "fav":false
+      "precio": 3300,
+      "fav": false
+    }
+  ],
+  "Carrito": [
+    {
+      "id": 1,
+      "Nombre": "Jugosa Recompensa",
+      "Estilo": "NEIPA",
+      "precio": 5500,
+      "cantidad": 3
     }
   ],
   "Estilos": [

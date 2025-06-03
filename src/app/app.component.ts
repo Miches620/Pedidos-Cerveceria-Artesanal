@@ -2,8 +2,6 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from "./components/header/header.component";
 import { BeerListComponent } from './components/beer-list/beer-list.component';
-import { ModalsComponent } from './components/modals/modals.component';
-
 
 @Component({
   selector: 'app-root',

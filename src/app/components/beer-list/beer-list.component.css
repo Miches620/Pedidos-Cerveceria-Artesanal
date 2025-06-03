@@ -13,7 +13,37 @@
     flex-direction: row;
     align-items: flex-end;
     justify-content: flex-end;
+    position: relative;
     /*gap: .5rem;*/
+}
+
+.admin-bar__bienvenida, .usuario-bar__bienvenida{
+    position: absolute;
+    background-color: rgba(224, 224, 224, 0.295);
+    border: 1px solid rgba(224, 224, 224, 0.295);
+    border-radius: 8px;
+    align-self: flex-start;
+    left: 1.8rem;
+}
+
+.header-control__logout{
+    position: absolute;
+    left: 0rem;
+    top:0;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.header-control__logout:hover{
+   color:rgb(184, 50, 50);
+   transition: .75s;
+}
+
+.header-control__logout:hover + .usuario-bar__bienvenida, .header-control__logout:hover + .admin-bar__bienvenida{
+   color:rgb(184, 50, 50);
+   background-color: rgba(255, 255, 255, 0.295);
+   border: 1px solid rgba(184, 50, 50, 0.295);
+   transition: .75s;
 }
 
 /*Estilos Admin*/
@@ -42,6 +72,7 @@
     border: 1px solid;
     border-color: rgb(54, 54, 54);
 }
+
 
 .btn-favoritos>.fa-heart{
     color:rgb(156, 123, 13)
@@ -86,10 +117,8 @@
     position: absolute;
     top: 0;
     right: 0;
-    /*  Puedes ajustar el tamaño y el color */
     font-size: 10px;
     color: white;
-    /*background-color: rgba(184, 50, 50, 0.767);*/
     padding: 1px 6px;
     border-radius: 50%;
     margin: .45rem 1.2rem;
@@ -108,7 +137,6 @@
     display: flex;
     margin-bottom: 1rem;
     gap: 1rem;
-    /*width: 100%;*/
     justify-content: flex-end;
 }
 
@@ -117,6 +145,8 @@
     margin-bottom: 1rem;
     justify-content: flex-end;
 }
+
+
 
 /*Header Catalogo*/
 
@@ -206,6 +236,7 @@
     margin: 0rem 1rem 0rem 1rem;
     border-bottom: 1px solid #acabab;
     transform: rotateY(180deg);
+    /*position:relative*/
 }
 
 .card-img-top,
@@ -231,7 +262,7 @@
     position: relative;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center; /*regula la altura de las estadisticas vitales de la birra*/
     margin: .5rem;
     padding: 0;
 }
@@ -252,7 +283,7 @@
     border-color: rgb(54, 54, 54);
 }
 
-.btnCarrito {
+.btnCarrito, .btnLogin {
     width: 4rem;
 }
 
@@ -314,7 +345,10 @@
 .btn:not(:hover),
 .card:not(:hover),
 .busqueda:not(:hover),
-.btn-favoritos:not(:hover) {
+.btn-favoritos:not(:hover),
+.header-control__logout:not(:hover),
+.header-control__logout:not(:hover) + .usuario-bar__bienvenida,
+.header-control__logout:not(:hover) + .admin-bar__bienvenida {
     transition: .75s;
 }
 

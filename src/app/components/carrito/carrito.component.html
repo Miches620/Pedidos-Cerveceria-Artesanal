@@ -1,0 +1,48 @@
+<app-modals #modal></app-modals>
+<div class="backdrop-carrito" *ngIf="showModalCarrito">
+    <div class="container-carrito">
+        <i class="fa-solid fa-xmark" (click)="closeModalCarrito()"></i>
+        <div class="modal-header">
+            <h4 class="modal-carrito-title">Carrito de compras</h4>
+        </div>
+        <div class="modal-body body-carrito">
+            <div class="carritoVacio" *ngIf="carritoDelUsuario.length===0">
+                <img src="/assets/cervezas/carritoVacio.jpg" alt="carrito vacio" class="imgCarrito">
+                <span>Parece que no tienes cervezas en tu carrito.</span>
+            </div>
+            <table *ngIf="carritoDelUsuario.length>0">
+                <thead>
+                    <tr class="titulos-carrito">
+                        <th>Cerveza</th>
+                        <th>Estilo</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody *ngFor="let cerveza of carritoDelUsuario">
+                    <tr>{{cerveza.Nombre}}</tr>
+                    <tr>{{cerveza.Estilo}}</tr>
+                    <tr>${{cerveza.precio}}</tr>
+                    <tr class="carrito-cantidad">
+                        <i class="fa fa-minus" aria-hidden="true" (click)="editarCantidad('resta',cerveza.id)">
+                        </i><span #carritoCantidadValor>{{cerveza.cantidad}}</span>
+                        <i class="fa fa-plus" aria-hidden="true" (click)="editarCantidad('suma',cerveza.id)"></i>
+                    </tr>
+                    <tr>${{cerveza.precio * cerveza.cantidad}}</tr>
+                    <tr><i class="fa fa-trash" aria-hidden="true" (click)="borrarArticulo(cerveza.id)"></i></tr>
+                </tbody>
+                <tfoot>
+                    <tr class="total-carrito">
+                        <th class="total-carrito-titulo">TOTAL:</th>
+                        <th class="total-carrito-valor">${{totalCarrito}}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn" (click)="closeModalCarrito()">Volver</button>
+            <button type="button" class="btn" *ngIf="carritoDelUsuario.length>0" ngStyle="display:none">Pedir!</button>
+        </div>
+    </div>
+</div>

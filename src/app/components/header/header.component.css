@@ -1,30 +1,27 @@
-header{
+header {
     position: sticky;
     width: 100%;
     height: 8rem;
     margin-bottom: 2.5rem;
 }
 
-.container-fluid{
+.header__navbar {
     height: auto;
     display: flex;
     width: 100%;
     justify-content: center;
 }
 
-.container-fluid:hover > .card-img-top{
-filter: invert(43%) sepia(70%) saturate(3133%) hue-rotate(33deg) brightness(96%) contrast(90%);
+.header__navbar:hover>.header__navbar_img {
+    filter: invert(43%) sepia(70%) saturate(3133%) hue-rotate(33deg) brightness(96%) contrast(90%);
     transition: .75s
 }
 
-.container-fluid:hover  {
+.header__navbar:hover {
     background-color: rgba(54, 54, 54);
-     transition: .75s
-}
-
-.container-fluid:not(:hover){
     transition: .75s
 }
 
-
-  
+.header__navbar:not(:hover) {
+    transition: .75s
+}

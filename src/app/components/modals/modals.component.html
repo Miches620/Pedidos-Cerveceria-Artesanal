@@ -38,26 +38,23 @@
     </div>
 </div>
 
-<!--Modal de Favoritos-->
-
-<!--<i class="fa-solid fa-beer-mug-empty"></i>-->
-
-<div class="backdrop" *ngIf="showModalFavoritos">
+<!--Modal de LOGIN-->
+<div class="backdrop" *ngIf="showModalLogin">
     <div class="modal-container">
-        <i class="fa-solid fa-xmark" (click)="closeModal('borrar')"></i>
+        <i class="fa-solid fa-xmark" (click)="closeModal('login')"></i>
         <div class="modal-header">
-            <h4 class="modal-title">Tus cervezas favoritas</h4>
-            <button type="button" class="btn-close" (click)="closeModal('borrar')" aria-label="Close"></button>
+            <h4 class="modal-title">Ingresar</h4>
+            <button type="button" class="btn-close" (click)="closeModal('login')" aria-label="Close"></button>
         </div>
-        <div class="modal-body body-borrar">
-            <i class="fa-solid fa-ban"></i>
-            <div class="favs-text" *ngFor="let cerveza of favsDelUsuario">
-                <p><b>{{cerveza.Nombre}} - {{cerveza.Estilo}}</b></p>
-            </div>
+        <div class="modal-body body-login">
+            <form [formGroup]="login">
+                <input type="text" class="form-control" id="user" formControlName="formUser" placeholder="Usuario">
+                <input type="password" class="form-control" id="pass" formControlName="formPass" placeholder="Contraseña">
+            </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn" (click)="closeModal('borrar')">Volver</button>
-            <button type="button" class="btn">¡Lo Quiero!</button>
+            <button type="button" class="btn" (click)="closeModal('login')">Cancelar</button>
+            <button type="button" class="btn btn-login" (click)="notificarIntentoDeLogin()">Ingresar</button>
         </div>
     </div>
 </div>

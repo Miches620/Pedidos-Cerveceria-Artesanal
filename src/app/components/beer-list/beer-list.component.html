@@ -1,12 +1,19 @@
-<app-modals #modal (notificarAccion)="borrarCerveza($event)"></app-modals>
+<app-modals #modal (notificarLogin)="loginIn($event)" (notificarAccion)="borrarCerveza($event)"></app-modals>
+<app-carrito #carrito></app-carrito>
 
 <div class="beer-list">
   <div class="header-control">
+    <i class="fa fa-ban header-control__logout" aria-hidden="true" *ngIf="isLogin && (modoUser || modoAdmin)" (click)="logOut()"></i>
+    <span class="usuario-bar__bienvenida" *ngIf="isLogin && modoUser">Bienvenido <b>{{nombreDeUsuario}}</b></span>
+    <span class="admin-bar__bienvenida" *ngIf="isLogin && modoAdmin">Bienvenido <b>{{administrador}}</b></span>
     <div class="usuario-bar">
-      <button class="btn-favoritos" (click)="verTusFavoritos()" *ngIf="favoritos.length>0">
+      <button class="btn btnLogin" (click)="login()" *ngIf="!isLogin">
+        <i class="fa fa-user" aria-hidden="true"></i>
+      </button>
+      <button class="btn-favoritos" #btnfavoritos (click)="verTusFavoritos()" *ngIf="favoritos.length>0">
         <i class="fa fa-heart"></i>
       </button>
-      <button type="button" class="btn btnCarrito">
+      <button type="button" class="btn btnCarrito" (click)="abrirCarrito()" *ngIf="modoUser">
         <p class="cantidad" *ngIf="elementosEnCarrito>0">{{elementosEnCarrito}}</p>
         <i class="fa fa-cart-shopping" aria-hidden="true"></i>
       </button>
@@ -40,13 +47,14 @@
     <p>No se encontraron coincidencias</p>
   </div>
   <div class="catalogo">
-    <div id="carouselInterval" class="carousel slide" data-bs-ride="carousel">
+    <div id="carouselInterval" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
       <div class="carousel-inner">
-        <div class="carousel-item" *ngFor="let tandaDeCervezas of tandas; let i = index" [ngClass]="{ 'active': i === 0}">
+        <div class="carousel-item" *ngFor="let tandaDeCervezas of tandas; let i = index"
+          [ngClass]="{ 'active': i === 0}">
           <div class="cards-wrapper">
             <div class="card" *ngFor="let cerveza of tandaDeCervezas" style="width: 18rem;">
               <div class="header-catalogo">
-                <div class="favoritos">
+                <div class="favoritos" *ngIf="modoUser">
                   <button class="nofavs" *ngIf="!modoAdmin && !cerveza.fav" (click)="agregarFavoritos(cerveza)"><i
                       class="fa-regular fa-heart"></i></button>
                   <button class="favs" *ngIf="!modoAdmin && cerveza.fav" (click)="quitarDeFavoritos(cerveza)"><i
@@ -60,8 +68,7 @@
                 </div>
               </div>
               <div class="portada">
-                <img [ngSrc]="cerveza.img" class="card-img-top" alt="{{cerveza.Estilo}}" fill
-                  [priority]="i === 0">
+                <img [ngSrc]="cerveza.img" class="card-img-top" alt="{{cerveza.Estilo}}" fill [priority]="i === 0">
                 <p class="info">{{cerveza.info}}</p>
               </div>
               <div class="card-body">
@@ -70,15 +77,16 @@
                 <p class="card-text">IBU: {{cerveza.IBU}}</p>
                 <p class="card-text">Alcohol: {{cerveza.ABV}} %</p>
                 <p class="card-text">Precio: ${{cerveza.precio}} </p>
-                <button class="btn btn-agregar" (click)="agregarAlCarrito(cerveza)">AGREGAR</button>
+                <button class="btn btn-agregar" (click)="agregarAlCarrito(cerveza)" *ngIf="modoUser">AGREGAR</button>
               </div>
             </div>
           </div>
         </div>
       </div>
-       <div class="carousel-indicators">
+      <div class="carousel-indicators">
         <button type="button" data-bs-target="#carouselInterval" attr.data-bs-slide-to="{{i}}" [class.active]="i === 0"
-          aria-current="true" attr.aria-label="Slide {{i+1}}" *ngFor="let tandaDeCervezas of tandas;let i = index"></button>
+          aria-current="true" attr.aria-label="Slide {{i+1}}"
+          *ngFor="let tandaDeCervezas of tandas;let i = index"></button>
       </div>
     </div>
   </div>
