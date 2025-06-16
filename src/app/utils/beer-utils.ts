@@ -1,6 +1,5 @@
 import { Carrito } from "../models/cerveza/carrito.module";
 import { Cerveza } from "../models/cerveza/cerveza.module";
-import { debounce } from "lodash";
 
 //Compara 2 objetos y devuelve un true o false segun corresponda
 export function sonIguales<T>(a: T, b: T): boolean {
@@ -11,39 +10,6 @@ export function sonIguales<T>(a: T, b: T): boolean {
 export function encontrarCervezaRepetida(lista: Cerveza[], nombre: string): boolean {
   return lista.some(c => c.Nombre.toLowerCase() === nombre.toLowerCase());
 }
-
-//Recibe una tanda de cervezas y las ordena segun el criterio del atributo.
-export function ordenarCervezas(
-  cervezas: Cerveza[][],
-  atributo: keyof Cerveza | ""
-): Cerveza[] {
-
-  const tandasUnificadas = unificarTandas(cervezas)
-  if (!atributo) {
-    return [...tandasUnificadas].sort((a, b) => a.Estilo.localeCompare(b.Estilo));
-  }
-
-  return [...tandasUnificadas].sort((a, b) => {
-    const valorA = a[atributo];
-    const valorB = b[atributo];
-    return Number(valorA) - Number(valorB);
-  });
-}
-
-//Filtra los resultados de busqueda tomando en cuenta el value de busqueda y el criterio establecido en un select junto al buscador.
-export const filtrarCervezas = debounce((
-  tandas: Cerveza[][],
-  criterio: keyof Cerveza,
-  busqueda: string,
-  callback: (tandasFiltrada: Cerveza[][]) => void
-) => {
-
-  const tandaUnificada = unificarTandas(tandas);
-
-  const tandasFiltrada = filtrosAvanzados(tandaUnificada, criterio, busqueda);
-
-  callback(tandasFiltrada)
-}, 400);
 
 //Toma el listado completo agrupado en tandas, y devuelve una unica lista con todos los elementos
 function unificarTandas(tandas: Cerveza[][]): Cerveza[] {
@@ -77,4 +43,31 @@ export function actualizarArticuloCantidad(articulo: Carrito | Cerveza, index:nu
     precio: articulo.precio,
     cantidad: cantidad,
   }
+}
+
+/**
+ * Esta función asume que los valores del formulario vienen validados (form.valid === true).
+ * Los campos marcados con "!" no pueden ser null ni undefined en este contexto.
+ */
+
+export function sanitizeCerveza(
+  formValues: Partial<Cerveza>,
+  originalCerveza?: Cerveza
+): Cerveza {
+  return {
+    id: originalCerveza?.id ?? 0,
+    Nombre: formValues.Nombre?.trim() || originalCerveza?.Nombre!,
+    SRM: formValues.SRM ?? originalCerveza?.SRM!,
+    Estilo: formValues.Estilo?.trim() || originalCerveza?.Estilo!,
+    IBU: formValues.IBU ?? originalCerveza?.IBU!,
+    ABV: formValues.ABV ?? originalCerveza?.ABV!,
+    img: formValues.img === null || formValues.img === ''
+      ? originalCerveza?.img ?? "assets/cervezas/CervezaRandom.jpg"
+      : "assets/cervezas/" + formValues.img?.substring(12),
+    info: formValues.info?.trim() === ''
+      ? originalCerveza?.info ?? "No hay descripción disponible."
+      : formValues.info!,
+    precio: formValues.precio ?? originalCerveza?.precio!,
+    fav: originalCerveza?.fav ?? false
+  };
 }

@@ -3,7 +3,8 @@
 
 <div class="beer-list">
   <div class="header-control">
-    <i class="fa fa-ban header-control__logout" aria-hidden="true" *ngIf="isLogin && (modoUser || modoAdmin)" (click)="logOut()"></i>
+    <i class="fa fa-ban header-control__logout" aria-hidden="true" *ngIf="isLogin && (modoUser || modoAdmin)"
+      (click)="logOut()"></i>
     <span class="usuario-bar__bienvenida" *ngIf="isLogin && modoUser">Bienvenido <b>{{nombreDeUsuario}}</b></span>
     <span class="admin-bar__bienvenida" *ngIf="isLogin && modoAdmin">Bienvenido <b>{{administrador}}</b></span>
     <div class="usuario-bar">
@@ -29,17 +30,18 @@
   </div>
   <!--Filtros-->
   <div class="filtros">
-    <i class="fa-solid fa-magnifying-glass"></i><input class="barraDeBusqueda" #buscador id="buscador" type="text"
-      (keyup)="buscar($event)">
-    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      Ordenar por:
-    </button>
-    <ul class="dropdown-menu">
-      <li><a class="dropdown-item" (click)="OrdenarPor('')" href="#">Estilo</a></li>
-      <li><a class="dropdown-item" (click)="OrdenarPor('SRM')" href="#">Color</a></li>
-      <li><a class="dropdown-item" (click)="OrdenarPor('IBU')" href="#">Amargor</a></li>
-      <li><a class="dropdown-item" (click)="OrdenarPor('ABV')" href="#">Alcohol</a></li>
-    </ul>
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input 
+    class="barraDeBusqueda"
+    #buscador id="buscador"
+    type="text"
+    
+    [formControl]="busqueda"
+    placeholder={{criterio}}
+    >
+    <select class="form-select btn btn-secondary dropdown-toggle" [(ngModel)]="criterio">
+      <option *ngFor="let c of criteriosDeOrdenamiento" [value]="c.value">{{ c.label }}</option>
+    </select>
   </div>
 
   <!--Catalogo de Cervezas-->
@@ -49,10 +51,11 @@
   <div class="catalogo">
     <div id="carouselInterval" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
       <div class="carousel-inner">
-        <div class="carousel-item" *ngFor="let tandaDeCervezas of tandas; let i = index"
+        <div class="carousel-item"
+          *ngFor="let tandaDeCervezas of tandas | sortAndFilter: criterio: busquedaFiltrada; let i = index"
           [ngClass]="{ 'active': i === 0}">
           <div class="cards-wrapper">
-            <div class="card" *ngFor="let cerveza of tandaDeCervezas" style="width: 18rem;">
+            <div class="card" *ngFor="let cerveza of tandaDeCervezas " style="width: 18rem;">
               <div class="header-catalogo">
                 <div class="favoritos" *ngIf="modoUser">
                   <button class="nofavs" *ngIf="!modoAdmin && !cerveza.fav" (click)="agregarFavoritos(cerveza)"><i
@@ -83,10 +86,10 @@
           </div>
         </div>
       </div>
-      <div class="carousel-indicators">
+      <div class="carousel-indicators" *ngIf="!noMatch">
         <button type="button" data-bs-target="#carouselInterval" attr.data-bs-slide-to="{{i}}" [class.active]="i === 0"
           aria-current="true" attr.aria-label="Slide {{i+1}}"
-          *ngFor="let tandaDeCervezas of tandas;let i = index"></button>
+          *ngFor="let tandaDeCervezas of tandas | sortAndFilter: criterio: busquedaFiltrada;let i = index"></button>
       </div>
     </div>
   </div>
@@ -104,7 +107,7 @@
           <form [formGroup]="nuevaCerveza">
             <div class="mb-1">
               <label for="nuevaCervezaNombre" class="form-label">Nombre</label>
-              <input type="text" class="form-control" id="nuevaCervezaNombre" formControlName="cervezaNombre">
+              <input type="text" class="form-control" id="nuevaCervezaNombre" formControlName="Nombre">
               <div *ngIf="formNombre?.invalid && formNombre?.touched">
                 <div *ngIf="formNombre?.errors?.['required']" class="text-danger">
                   Ponele un nombre a tu cerveza.
@@ -116,7 +119,7 @@
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaEstilo" class="form-label">Estilo</label>
-              <select id="nuevaCervezaEstilo" formControlName="cervezaEstilo" class="form-select"
+              <select id="nuevaCervezaEstilo" formControlName="Estilo" class="form-select"
                 aria-label="Default select">
                 <option *ngFor="let estilo of estilos">{{estilo}}</option>
               </select>
@@ -128,7 +131,7 @@
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaSRM" class="form-label">Color (SRM)</label>
-              <input type="number" class="form-control" id="nuevaCervezaSRM" formControlName="cervezaSRM">
+              <input type="number" class="form-control" id="nuevaCervezaSRM" formControlName="SRM">
               <div *ngIf="formColor?.invalid && formColor?.touched">
                 <div *ngIf="formColor?.errors?.['required']" class="text-danger">
                   Para un correcto funcionamiento en los filtros deberas indicar el SRM de tu cerveza.
@@ -140,7 +143,7 @@
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaIBU" class="form-label">IBUs</label>
-              <input type="number" class="form-control" id="nuevaCervezaIBU" formControlName="cervezaIBU">
+              <input type="number" class="form-control" id="nuevaCervezaIBU" formControlName="IBU">
               <div *ngIf="formIBU?.invalid && formIBU?.touched">
                 <div *ngIf="formIBU?.errors?.['required']" class="text-danger">
                   Para un correcto funcionamiento en los filtros deberas indicar los IBUs de tu cerveza.
@@ -152,7 +155,7 @@
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaABV" class="form-label">Alcohol %</label>
-              <input type="number" class="form-control" id="nuevaCervezaABV" formControlName="cervezaABV">
+              <input type="number" class="form-control" id="nuevaCervezaABV" formControlName="ABV">
               <div *ngIf="formAlcohol?.invalid && formAlcohol?.touched">
                 <div *ngIf="formAlcohol?.errors?.['required']" class="text-danger">
                   Para un correcto funcionamiento en los filtros deberas indicar la graducion alcohólica
@@ -165,18 +168,18 @@
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaIMG" class="form-label">Imagen</label>
-              <input type="file" class="form-control" id="nuevaCervezaIMG" formControlName="cervezaIMG">
+              <input type="file" class="form-control" id="nuevaCervezaIMG" formControlName="img">
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaInfo" class="form-label">Descripción</label>
-              <input type="text" class="form-control" id="nuevaCervezaInfo" formControlName="cervezaInfo">
+              <input type="text" class="form-control" id="nuevaCervezaInfo" formControlName="info">
               <div *ngIf="formInfo?.errors?.['minlength'] || formInfo?.errors?.['maxlength']" class="text-danger">
                 Descripcion: 20 caracteres min - 280 caracteres max.
               </div>
             </div>
             <div class="mb-1">
               <label for="nuevaCervezaPrecio" class="form-label">Precio</label>
-              <input type="number" class="form-control" id="nuevaCervezaPrecio" formControlName="cervezaPrecio">
+              <input type="number" class="form-control" id="nuevaCervezaPrecio" formControlName="precio">
               <div *ngIf="formPrecio?.invalid && formPrecio?.touched">
                 <div *ngIf="formPrecio?.errors?.['required']" class="text-danger">
                   Deberas colocar un precio a tu cerveza.

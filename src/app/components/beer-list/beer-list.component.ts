@@ -1,18 +1,20 @@
 
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CervezaService } from '../../services/cerveza.service';
 import { Cerveza } from '../../models/cerveza/cerveza.module';
 import { NgClass, NgFor, NgIf, NgOptimizedImage } from '@angular/common';
 import { ModalsComponent } from '../modals/modals.component';
-import { encontrarCervezaRepetida, filtrarCervezas, ordenarCervezas, organizarCarousel, sonIguales } from '../../utils/beer-utils';
+import { encontrarCervezaRepetida, organizarCarousel, sonIguales, sanitizeCerveza } from '../../utils/beer-utils';
 import { SharedEventService } from '../../services/shared-event.service';
 import { CarritoComponent } from '../carrito/carrito.component';
 import { Usuario } from '../../models/cerveza/usuario.module';
+import { SortAndFilterPipe } from "../../pipes/SortAndFilterPipe.pipe";
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-beer-list',
-  imports: [NgClass, NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent, CarritoComponent],
+  imports: [FormsModule, NgClass, NgFor, NgIf, ReactiveFormsModule, NgOptimizedImage, ModalsComponent, CarritoComponent, SortAndFilterPipe],
   templateUrl: './beer-list.component.html',
   styleUrl: './beer-list.component.css'
 })
@@ -61,7 +63,16 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   //Variables para filtros y busqueda
   noMatch: boolean = false;
+  criterio: keyof Cerveza = "Estilo"
+  busqueda = new FormControl('');
+  busquedaFiltrada: string = '';
 
+  criteriosDeOrdenamiento = [
+    { label: 'Estilo', value: 'Estilo' },
+    { label: 'Color', value: 'SRM' },
+    { label: 'Amargor', value: 'IBU' },
+    { label: 'Alcohol', value: 'ABV' }
+  ];
 
   //Variable de Carousel:
   tandas: Cerveza[][] = []
@@ -78,20 +89,24 @@ export class BeerListComponent implements OnInit, OnDestroy {
   modoAdmin: boolean = false;
   modoUser: boolean = false;
 
-  constructor(private serviceCerveza: CervezaService, private crearCerveza: FormBuilder, private sharedEvent: SharedEventService) {
+  constructor(private serviceCerveza: CervezaService, private crearCerveza: FormBuilder, private sharedEvent: SharedEventService, private cdr: ChangeDetectorRef) {
     this.nuevaCerveza = this.crearCerveza.group({
-      cervezaNombre: ['', [Validators.required, Validators.minLength(1)]],
-      cervezaSRM: ['', [Validators.required, Validators.min(1), Validators.max(50)]],
-      cervezaEstilo: ['', Validators.required],
-      cervezaIBU: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
-      cervezaABV: ['', [Validators.required, Validators.min(0), Validators.max(90)]],
-      cervezaIMG: [''],
-      cervezaInfo: ['', [Validators.minLength(20), Validators.maxLength(280)]],
-      cervezaPrecio: ['', [Validators.required, Validators.min(0), Validators.max(50000)]]
+      Nombre: ['', [Validators.required, Validators.minLength(1)]],
+      SRM: ['', [Validators.required, Validators.min(1), Validators.max(50)]],
+      Estilo: ['', Validators.required],
+      IBU: ['', [Validators.required, Validators.min(0), Validators.max(100)]],
+      ABV: ['', [Validators.required, Validators.min(0), Validators.max(90)]],
+      img: [''],
+      info: ['', [Validators.minLength(20), Validators.maxLength(280)]],
+      precio: ['', [Validators.required, Validators.min(0), Validators.max(50000)]]
     });
   }
 
   ngOnInit(): void {
+
+    this.busqueda.valueChanges
+      .pipe(debounceTime(300))
+      .subscribe(valor => this.procesarBusqueda(valor!));
 
     this.buscardorInput.nativeElement.placeholder = "Estilo";
 
@@ -113,122 +128,92 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   //*****Getters del Formulario*****************************************************************************************************************
 
+  // Getters usados en las validaciones del HTML para acceder fácilmente a los controles del formulario
+
   get formNombre() {
-    return this.nuevaCerveza.get('cervezaNombre');
+    return this.nuevaCerveza.get('Nombre');
   }
 
   get formColor() {
-    return this.nuevaCerveza.get('cervezaSRM');
+    return this.nuevaCerveza.get('SRM');
   }
 
   get formEstilo() {
-    return this.nuevaCerveza.get('cervezaEstilo');
+    return this.nuevaCerveza.get('Estilo');
   }
 
   get formIBU() {
-    return this.nuevaCerveza.get('cervezaIBU');
+    return this.nuevaCerveza.get('IBU');
   }
 
   get formAlcohol() {
-    return this.nuevaCerveza.get('cervezaABV');
+    return this.nuevaCerveza.get('ABV');
   }
 
   get formImagen() {
-    return this.nuevaCerveza.get('cervezaIMG');
+    return this.nuevaCerveza.get('img');
   }
 
   get formInfo() {
-    return this.nuevaCerveza.get('cervezaInfo');
+    return this.nuevaCerveza.get('info');
   }
 
   get formPrecio() {
-    return this.nuevaCerveza.get('cervezaPrecio');
+    return this.nuevaCerveza.get('precio');
   }
 
   //********************************************************************************************************************************************
 
   //*****Visualizacion del listado de Cervezas**************************************************************************************************
 
-  obtenerCervezas(): void {
+  private obtenerCervezas(): void {
     this.serviceCerveza.getCervezas().subscribe((data) => {
       this.cervezas = data;
       this.cervezasFiltradas = data;
     });
   }
 
-  obtenerEstilos(): void {
+  private obtenerEstilos(): void {
     this.serviceCerveza.getEstilos().subscribe((data) => {
       this.estilos = data.sort();
     })
   }
 
-  OrdenarPor(atributo: keyof Cerveza | ""): void {
-    this.buscardorInput.nativeElement.value = "";
-    this.buscardorInput.nativeElement.placeholder = atributo || "Estilo";
-
-    this.cervezasFiltradas = ordenarCervezas(this.tandas, atributo);
-    this.tandas = organizarCarousel(this.cervezasFiltradas);
+  private OrdenarPor(atributo: keyof Cerveza | ""): void {
+    this.criterio = atributo || "Estilo";
   }
 
+  private procesarBusqueda(valor: string): void {
+    this.busquedaFiltrada = valor?.trim().toLowerCase() || "";
 
-  buscar(event?: KeyboardEvent) {
-    const tecla = event?.key;
+    const todas = this.tandas?.flat() || [];
 
-    const busqueda = this.buscardorInput.nativeElement.value;
-    const criterio = this.buscardorInput.nativeElement.placeholder as keyof Cerveza;
+    const atributo = this.criterio || "Estilo";
 
-    const teclasExcluidas = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt'];
-    if (tecla && teclasExcluidas.includes(tecla)) return;
+    const filtradas = todas.filter(cerveza => {
+      const valorCerveza = cerveza[atributo];
+      return valorCerveza?.toString().toLowerCase().includes(this.busquedaFiltrada);
+    });
 
-    busqueda === "" ?
-      this.ngOnInit()
-      :
-      filtrarCervezas(this.tandas, criterio, busqueda, (resultado) => {
-        this.tandas = resultado;
-        this.noMatch = this.tandas.length === 0;
-      })
+    this.noMatch = filtradas.length === 0;
   }
-
-  //FAQ - READ
-  //- ¿Qué pasa si no hay registros que coincidan con los criterios de búsqueda?
-  //- R: Si la búsqueda no devuelve ningun registro, el usuario recibira la leyenda "No se encontraron coincidencias" (HMTL, linea 26).
-  //- ¿Qué pasa si la búsqueda devuelve un conjunto de resultados muy grande y necesita ser paginado?
-  //- R: Teniendo en cuenta la dimension asignada al proyecto, el máximo esperado en este tipo de sectores no sobrepasaria jamas los 50 estilos.
-  //- ¿Qué pasa si el usuario solicita un registro que no existe?
-  //- R: Aplica el mismo principio que en la primer pregunta, la linea 26 del HTML devolvera la leyenda "No se encontraron coincidencias".
-  //- ¿Qué pasa si la consulta es muy compleja y requiere de índices o optimizaciones adicionales?
-  //- R: La escala asignada al proyecto evita este tipo de consultas, por lo cual esta pregunta no aplica al proyecto en cuestion.
-
-  //* La seccion de busqueda esta divida en 2 sectores:
-  //  -La barra de busqueda (la cual interviene de forma eficaz todas las preguntas realizadas mas arriba).
-  //  -El Selector de criterios de orden (que dispondra la lista segun determinados atributos de cada Cerveza)
 
   //********************************************************************************************************************************************
 
   //*****Crear Nueva Cerveza********************************************************************************************************************
 
-  crearNuevaCerveza(): Cerveza {
-
-    const idNuevaCerveza = 0;
-    const nCerveza: Cerveza = {
-      id: idNuevaCerveza,
-      Nombre: this.formNombre?.value,
-      SRM: this.formColor?.value,
-      Estilo: this.formEstilo?.value,
-      IBU: this.formIBU?.value,
-      ABV: this.formAlcohol?.value,
-      img: this.formImagen?.value === null ? "assets/cervezas/CervezaRandom.jpg" : "assets/cervezas/" + this.formImagen?.value.substring(12),
-      info: this.formInfo?.value === null ? "No hay descripcion disponible." : this.formInfo?.value,
-      precio: this.formPrecio?.value,
-      fav: false
-    }
+  private crearNuevaCerveza(): Cerveza {
+    const nCerveza: Cerveza = sanitizeCerveza(this.nuevaCerveza.value);
     return nCerveza;
   }
 
   agregarNuevaCerveza() {
-    const nCerveza = this.crearNuevaCerveza()
+
+    let nCerveza;
 
     this.nuevaCerveza.valid ?
+
+    (nCerveza = this.crearNuevaCerveza(),
 
       !encontrarCervezaRepetida(this.cervezas, nCerveza.Nombre) ?
 
@@ -242,23 +227,10 @@ export class BeerListComponent implements OnInit, OnDestroy {
         })
         :
         this.modal.openModalError("Ya existe una cerveza registrada con ese nombre.", true)
+      )
       :
       this.nuevaCerveza.markAllAsTouched();
   }
-
-  //FAQ - CREATE
-  //- ¿Qué pasa si el usuario no proporciona todos los campos obligatorios?
-  //- R:  this.nuevaCerveza.valid ? verifica si se cumplen los requisitos del formulario, en caso de no cumplirse se activan los Validators.
-  //- ¿Qué pasa si el usuario proporciona datos inválidos?
-  //- R: Cada input text/number tiene NgIf con condicionales a cumplir que responden a Validators asignados en la creacion del formGroup.
-  //- ¿Qué pasa si el registro repetido no es exactamente igual, pero sí muy similar (ej: mismo nombre pero diferente mayúscula/minúscula)?
-  //- R: Se agregó funcion encontrarRepetido(), que revisara si el nombre elegido ya fue ocupado en un registro anterior.*
-  //  *Cabe aclarar que distintas cervezas pueden tener mismo color, mismo alcohol, mismos IBUS y ser diferentes estilos.
-  //- ¿Qué pasa si el usuario intenta crear un registro con un ID que ya existe?
-  //- R: Esto no es posible ya que la asignacion de IDs (en esta etapa sin backend) se genera sin intervencion del usuario.**
-  //- **En una etapa mas avanzada (con Backend y base de datos, la base de datos se encargara de la gestion con autoincremento del campo ID).
-  //- ¿Qué pasa si el formulario tiene campos con valores por defecto que deben ser validados?
-  //- R: Todos los campos del formulario tienen Validators que verifican precisamente que los ingresos cumplan con determinados condicionales.
 
   //********************************************************************************************************************************************
 
@@ -266,34 +238,27 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
   prepararEdicion(cerveza: Cerveza) {
     this.mostrarModal("editar");
-    this.formNombre?.setValue(cerveza.Nombre);
-    this.formColor?.setValue(cerveza.SRM);
-    this.formEstilo?.setValue(cerveza.Estilo);
-    this.formIBU?.setValue(cerveza.IBU);
-    this.formAlcohol?.setValue(cerveza.ABV);
-    this.formInfo?.setValue(cerveza.info);
-    this.formPrecio?.setValue(cerveza.precio);
+      this.nuevaCerveza.patchValue({
+      Nombre: cerveza.Nombre,
+      SRM: cerveza.SRM,
+      Estilo: cerveza.Estilo,
+      IBU: cerveza.IBU,
+      ABV: cerveza.ABV,
+      info: cerveza.info,
+      precio: cerveza.precio
+    })
     this.idDeCervezaSeleccionada = cerveza.id
   }
 
   editarCerveza() {
 
     const cervezaID: Cerveza | undefined = this.cervezas.find(x => x.id === this.idDeCervezaSeleccionada);
+    let eCerveza;
 
     if (cervezaID) {
-      const eCerveza: Cerveza = {
-        id: this.idDeCervezaSeleccionada,
-        Nombre: this.formNombre?.value !== cervezaID.Nombre ? this.formNombre?.value : cervezaID.Nombre,
-        SRM: this.formColor?.value !== cervezaID.SRM ? this.formColor?.value : cervezaID.SRM,
-        Estilo: this.formEstilo?.value !== cervezaID.Estilo ? this.formEstilo?.value : cervezaID.Estilo,
-        IBU: this.formIBU?.value !== cervezaID.IBU ? this.formIBU?.value : cervezaID.IBU,
-        ABV: this.formAlcohol?.value !== cervezaID.ABV ? this.formAlcohol?.value : cervezaID.ABV,
-        img: this.formImagen?.value === null ? cervezaID.img : this.formImagen?.value,
-        info: this.formInfo?.value !== cervezaID.info ? this.formInfo?.value : cervezaID.info,
-        precio: this.formPrecio?.value !== cervezaID.precio ? this.formPrecio?.value : cervezaID.precio,
-        fav: cervezaID.fav
-      }
-
+      if(this.nuevaCerveza.valid){
+      eCerveza = sanitizeCerveza(this.nuevaCerveza.value, cervezaID);
+      
       sonIguales(cervezaID, eCerveza) ?
         (this.funcionExitosa()
           , this.modal.openModalError("Ningún cambio detectado en los datos de la cerveza.", true))
@@ -306,6 +271,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
             this.modal.openModalError("Error al intentar editar la cerveza seleccionada. Por favor intenta nuevamente. " + JSON.stringify(e), false);
           }
         })
+      }
     }
   }
 
@@ -335,12 +301,6 @@ export class BeerListComponent implements OnInit, OnDestroy {
     })
   }
 
-  //FAQ - DELETE
-  //- ¿Qué pasa si el usuario intenta eliminar un registro que no existe?
-  //- R: La funcion borrarCerveza() existe en cada Cerveza, lo que permite tomar su ID al momento en el que el usuario decide borrarla.
-  //- ¿Qué pasa si el registro que se intenta eliminar tiene dependencias con otros registros (por ejemplo, un pedido que tiene items asociados)?
-  //- R: (EN PROCESO)
-
   //********************************************************************************************************************************************
 
   //*****Funciones Auxiliares*******************************************************************************************************************
@@ -360,7 +320,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
         this.edicion = true)
   }
 
-  funcionExitosa() {
+  private funcionExitosa() {
     this.ngOnInit();
     this.nuevaCerveza.reset();
     this.cerrarBtnModal.nativeElement.click();
@@ -391,7 +351,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
       this.buscardorInput.nativeElement.value = ""
   }
 
-  filtrarFavoritos() {
+  private filtrarFavoritos() {
     !this.filtroFavoritos ?
       this.tandas = organizarCarousel(this.cervezas) :
       this.tandas = organizarCarousel(this.favoritos);
@@ -416,8 +376,8 @@ export class BeerListComponent implements OnInit, OnDestroy {
 
       if (login) {
         this.isLogin = true;
-        if (login.user === "Comprador") { this.modoUser = true; this.nombreDeUsuario = login.user; this.modoAdmin=false;}
-        else { this.modoAdmin = true; this.administrador = login.user; this.modoUser=false; }
+        if (login.user === "Comprador") { this.modoUser = true; this.nombreDeUsuario = login.user; this.modoAdmin = false; }
+        else { this.modoAdmin = true; this.administrador = login.user; this.modoUser = false; }
       } else { this.modal.openModalError("Usuario y/o Contraseña incorrecta.", true) }
 
     }
@@ -432,7 +392,7 @@ export class BeerListComponent implements OnInit, OnDestroy {
     this.ngOnInit();
   }
 
-  obtenerUsuarios() { //Provisorio. Entiendo la gravedad de exponer las credenciales de esta forma. Es solo con fines demostrativos.
+  private obtenerUsuarios() { //Provisorio. Entiendo la gravedad de exponer las credenciales de esta forma. Es solo con fines demostrativos.
     this.serviceCerveza.getUsers().subscribe((data) => {
       this.usuarioProv = data
     });

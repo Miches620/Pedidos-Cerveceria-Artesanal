@@ -21,7 +21,7 @@ export class CervezaService {
     return this.http.get<string[]>(this.url + "estilos");
   }
 
-  getUsers():Observable<Usuario[]> {
+  getUsers(): Observable<Usuario[]> {
     return this.http.get<Usuario[]>(this.url + "login");
   }
 
@@ -29,8 +29,8 @@ export class CervezaService {
     return this.http.post<Cerveza[]>(this.url + "Cervezas", cerveza);
   }
 
-  updateCerveza(cerveza: Cerveza, id:number):Observable<Cerveza[]> {
-    return this.http.put<Cerveza[]>(this.url + "Cervezas/" + id,cerveza);
+  updateCerveza(cerveza: Cerveza, id: number): Observable<Cerveza[]> {
+    return this.http.put<Cerveza[]>(this.url + "Cervezas/" + id, cerveza);
   }
 
   deleteCerveza(id: number): Observable<void> {
@@ -38,3 +38,6 @@ export class CervezaService {
   }
 
 }
+
+
+
